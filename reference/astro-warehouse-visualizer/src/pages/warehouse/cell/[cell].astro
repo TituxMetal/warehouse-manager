@@ -1,0 +1,45 @@
+---
+// src/pages/warehouse/cell/[cell].astro
+import { ClientRouter } from 'astro:transitions'
+import { Breadcrumb } from '~/components/Breadcrumb'
+import { CellVisualization } from '~/components/CellVisualization'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import { cellService } from '~/services/cell.service'
+
+export const prerender = false
+
+const cellNumber = Number(Astro.params.cell)
+const isValidCellNumber = !isNaN(cellNumber) && cellNumber > 0
+
+const getCellData = async () => {
+  if (!isValidCellNumber) {
+    throw new Error('Invalid cell number')
+  }
+
+  const cellData = await cellService.getCellWithAisles(cellNumber)
+
+  if (!cellData) {
+    throw new Error(`Cell ${cellNumber} not found`)
+  }
+
+  return cellData
+}
+
+const cellData = await getCellData().catch(() => null)
+
+if (!cellData) {
+  return Astro.redirect('/warehouse')
+}
+---
+
+<BaseLayout title={`Cell ${cellNumber} - Warehouse Overview`}>
+  <head slot='head'>
+    <ClientRouter />
+  </head>
+
+  <main class='container mx-auto px-4 py-8'>
+    <Breadcrumb cell={cellNumber} showLocation client:load />
+
+    <CellVisualization cell={cellData} client:load />
+  </main>
+</BaseLayout>

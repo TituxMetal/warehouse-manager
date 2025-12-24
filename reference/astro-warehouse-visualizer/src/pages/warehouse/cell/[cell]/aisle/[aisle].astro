@@ -1,0 +1,53 @@
+---
+// src/pages/warehouse/cell/[cell]/aisle/[aisle].astro
+import { ClientRouter } from 'astro:transitions'
+import { AisleVisualization } from '~/components/AisleVisualization'
+import { Breadcrumb } from '~/components/Breadcrumb'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import { aisleService } from '~/services/aisle.service'
+
+export const prerender = false
+
+// Get URL parameters and validate
+const { cell, aisle } = Astro.params
+
+if (!cell || !aisle) {
+  return Astro.redirect('/warehouse')
+}
+
+// Parse numeric values with validation
+const cellNumber = Number(cell)
+const aisleNumber = Number(aisle)
+
+if (isNaN(cellNumber) || isNaN(aisleNumber)) {
+  return Astro.redirect('/warehouse')
+}
+
+// Format aisle number for display
+const formattedAisle = aisleNumber.toString().padStart(3, '0')
+
+const aisles = await aisleService.getAisleWithLocations(cellNumber, aisleNumber)
+
+if (!aisles.length) {
+  return Astro.redirect('/warehouse')
+}
+
+// Destructure needed values for title
+const [evenAisle, oddAisle] = aisles
+const activeCell = oddAisle?.cell || evenAisle?.cell
+
+if (!activeCell) {
+  return Astro.redirect('/warehouse')
+}
+---
+
+<BaseLayout title={`Cell ${cellNumber} - Aisle ${formattedAisle}`}>
+  <head slot='head'>
+    <ClientRouter />
+  </head>
+
+  <main class='container mx-auto px-4 py-8'>
+    <Breadcrumb cell={cellNumber} aisle={aisleNumber} client:load />
+    <AisleVisualization aisles={aisles} client:load />
+  </main>
+</BaseLayout>

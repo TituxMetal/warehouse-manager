@@ -1,0 +1,59 @@
+---
+// src/pages/warehouse/cell/[cell]/aisle/[aisle]/[location].astro
+import { ClientRouter } from 'astro:transitions'
+import { Breadcrumb } from '~/components/Breadcrumb'
+import { LocationSelector } from '~/components/LocationSelector'
+import { LocationVisualization } from '~/components/LocationVisualization'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+import { locationService } from '~/services/location.service'
+import { formatAddress, parseLocation } from '~/utils/warehouse'
+
+export const prerender = false
+
+const { cell, aisle, location } = Astro.params
+const cellNumber = parseInt(cell || '', 10)
+const aisleNumber = parseInt(aisle || '', 10)
+
+const parsedLocation = parseLocation(location || '')
+
+if (isNaN(cellNumber) || isNaN(aisleNumber) || !parsedLocation) {
+  return Astro.redirect('/warehouse')
+}
+
+const { position, level } = parsedLocation
+
+const cellData = await locationService.getLocationContext(cellNumber, aisleNumber, position, level)
+
+if (!cellData) {
+  return Astro.redirect('/warehouse')
+}
+
+const selectedLocation = {
+  cell: cellNumber,
+  aisle: aisleNumber,
+  position,
+  level
+}
+
+const formattedAddress = formatAddress(selectedLocation)
+---
+
+<BaseLayout
+  title={`Cell ${cellNumber}, Aisle ${aisleNumber}, Location ${location} - Warehouse Visualization`}
+>
+  <head slot='head'>
+    <ClientRouter />
+  </head>
+
+  <main class='container mx-auto px-4 py-8'>
+    <Breadcrumb cell={selectedLocation.cell} aisle={selectedLocation.aisle} showLocation={true} />
+
+    <h1 class='mb-8 text-3xl font-bold'>Warehouse Location Visualizer</h1>
+
+    <div class='mb-6'>
+      <LocationSelector client:load address={formattedAddress} />
+    </div>
+
+    <LocationVisualization cell={cellData} selectedLocation={selectedLocation} client:load />
+  </main>
+</BaseLayout>

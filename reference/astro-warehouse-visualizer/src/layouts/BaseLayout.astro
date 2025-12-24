@@ -1,0 +1,80 @@
+---
+import '~/styles/globals.css'
+
+import { Icon } from 'astro-icon/components'
+import { actions } from 'astro:actions'
+const { session, user } = Astro.locals
+
+type Props = {
+  title: string
+}
+
+const { title } = Astro.props
+const formattedUsername = user && user.username?.charAt(0).toUpperCase() + user.username?.slice(1)
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+    <meta name='viewport' content='width=device-width' />
+    <meta name='generator' content={Astro.generator} />
+    <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+    <title>{title}</title>
+  </head>
+  <body class='min-h-screen'>
+    <header class='flex items-center justify-between bg-sky-900 p-6 font-semibold text-neutral-100'>
+      <nav class='mx-auto flex w-full max-w-(--breakpoint-xl) gap-4'>
+        <ul class='flex w-full items-center gap-4'>
+          <li>
+            <a href='/'>Home</a>
+          </li>
+          <li>
+            <a href='/warehouse'>Warehouse Visualizer</a>
+          </li>
+          <li>
+            <a href='/about'>About</a>
+          </li>
+          {
+            session ? (
+              <>
+                <li>
+                  <a href='/implementation'>Implementation</a>
+                </li>
+                <li>
+                  <a href='/profile'>{formattedUsername}'s Profile</a>
+                </li>
+                <li>
+                  <form method='POST' action={actions.logout}>
+                    <button>Logout</button>
+                  </form>
+                </li>
+              </>
+            ) : (
+              <li>
+                <a href='/login'>Login</a>
+              </li>
+            )
+          }
+        </ul>
+      </nav>
+    </header>
+    <main class='mx-auto flex h-full w-full max-w-(--breakpoint-xl) flex-1 flex-col py-6'>
+      <slot />
+    </main>
+    <footer class='flex flex-col items-center justify-center gap-2 bg-sky-900 p-6 text-neutral-100'>
+      <p class='flex items-center justify-center gap-1 font-semibold'>
+        <Icon name='copy-left' aria-label='copy left icon' class='size-3.5' />
+        {new Date().getFullYear()} Warehouse Location Visualizer.
+      </p>
+      <p>
+        Built by <a
+          class='font-semibold text-sky-300 hover:underline'
+          href='https://github.com/TituxMetal'
+          target='_blank'
+          rel='noopener noreferrer'>Lgdweb</a
+        > with love and lots of coffee.
+      </p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,146 @@
+---
+// src/pages/index.astro
+import { ClientRouter } from 'astro:transitions'
+import BaseLayout from '~/layouts/BaseLayout.astro'
+---
+
+<BaseLayout title='Warehouse Visualizer'>
+  <head slot='head'>
+    <ClientRouter />
+  </head>
+
+  <main class='container mx-auto px-4 py-8'>
+    <div class='mx-auto max-w-4xl space-y-8'>
+      <section class='space-y-4 text-center'>
+        <h1 class='text-4xl font-bold'>Warehouse Location Visualizer</h1>
+        <p class='text-xl text-zinc-300'>
+          A modern tool for efficient warehouse location management and visualization
+        </p>
+        <a
+          href='/warehouse'
+          class='inline-block rounded-lg bg-blue-700 px-6 py-3 font-semibold hover:bg-blue-600'
+        >
+          Get Started
+        </a>
+      </section>
+
+      <section class='space-y-4'>
+        <h2 class='text-2xl font-bold'>Features Overview</h2>
+        <div class='prose prose-invert max-w-none'>
+          <p>
+            The Warehouse Location Visualizer simplifies warehouse management through an intuitive
+            interface and powerful features:
+          </p>
+          <ul>
+            <li>Interactive visualization of warehouse locations</li>
+            <li>Real-time location search and validation</li>
+            <li>Automatic scrolling to relevant content</li>
+            <li>Comprehensive cell and aisle statistics</li>
+            <li>Efficient navigation between warehouse sections</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class='space-y-4'>
+        <h2 class='text-2xl font-bold'>URL Structure</h2>
+        <div class='space-y-2 rounded-lg bg-zinc-800 p-4'>
+          <p class='font-mono text-sm'>
+            <span class='text-blue-400'>/warehouse</span>
+            <span class='text-zinc-400'> - Overview of all cells</span>
+          </p>
+          <p class='font-mono text-sm'>
+            <span class='text-blue-400'>/warehouse/cell/[cell]</span>
+            <span class='text-zinc-400'> - View specific cell and its aisles</span>
+          </p>
+          <p class='font-mono text-sm'>
+            <span class='text-blue-400'>/warehouse/cell/[cell]/aisle/[aisle]</span>
+            <span class='text-zinc-400'> - Explore positions in an aisle</span>
+          </p>
+          <p class='font-mono text-sm'>
+            <span class='text-blue-400'>/warehouse/cell/[cell]/aisle/[aisle]/[location]</span>
+            <span class='text-zinc-400'> - View specific location details</span>
+          </p>
+        </div>
+      </section>
+
+      <section class='space-y-4'>
+        <h2 class='text-2xl font-bold'>Example Usage</h2>
+        <div class='py-6'>
+          <h3 class='mb-4 text-lg font-semibold'>Try Sample Locations</h3>
+
+          <div class='grid gap-6 md:grid-cols-2'>
+            {/* Storage Location */}
+            <div class='space-y-4'>
+              <p class='text-zinc-300'>Storage location example:</p>
+              <div class='grid grid-cols-2 gap-3'>
+                <div class='rounded-sm bg-zinc-700 p-3'>
+                  <span class='text-sm text-zinc-300'>Cell</span>
+                  <p class='font-mono text-xl'>4</p>
+                </div>
+                <div class='rounded-sm bg-zinc-700 p-3'>
+                  <span class='text-sm text-zinc-300'>Aisle</span>
+                  <p class='font-mono text-xl'>016</p>
+                </div>
+                <div class='rounded-sm bg-zinc-700 p-3'>
+                  <span class='text-sm text-zinc-300'>Position</span>
+                  <p class='font-mono text-xl'>0010</p>
+                </div>
+                <div class='rounded-sm bg-zinc-700 p-3'>
+                  <span class='text-sm text-zinc-300'>Level</span>
+                  <p class='font-mono text-xl'>40</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Storage Quick Access */}
+            <div class='flex flex-col justify-center space-y-4'>
+              <p class='text-zinc-300'>Click below to see it in action:</p>
+              <a
+                href='/warehouse/cell/4/aisle/16/0010-40'
+                class='group flex items-center justify-between rounded-lg bg-zinc-700 p-4 transition-colors hover:bg-blue-700'
+              >
+                <span class='font-mono text-sm'>4-016-0010-40</span>
+                <span class='text-blue-300 group-hover:text-neutral-100'> View Location → </span>
+              </a>
+            </div>
+
+            {/* Picking Location */}
+            <div class='space-y-4'>
+              <p class='text-zinc-300'>Picking location example:</p>
+              <div class='grid grid-cols-2 gap-3'>
+                <div class='rounded-sm bg-zinc-700 p-3'>
+                  <span class='text-sm text-zinc-300'>Cell</span>
+                  <p class='font-mono text-xl'>4</p>
+                </div>
+                <div class='rounded-sm bg-zinc-700 p-3'>
+                  <span class='text-sm text-zinc-300'>Aisle</span>
+                  <p class='font-mono text-xl'>016</p>
+                </div>
+                <div class='rounded-sm bg-zinc-700 p-3'>
+                  <span class='text-sm text-zinc-300'>Position</span>
+                  <p class='font-mono text-xl'>0010</p>
+                </div>
+                <div class='rounded-sm bg-amber-900 p-3'>
+                  <span class='text-sm text-amber-200'>Level</span>
+                  <p class='font-mono text-xl text-amber-200'>00</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Picking Quick Access */}
+            <div class='flex flex-col justify-center space-y-4'>
+              <p class='text-zinc-300'>Click below to see it in action:</p>
+              <a
+                href='/warehouse/cell/4/aisle/16/0010-00'
+                class='group flex items-center justify-between rounded-lg bg-amber-900 p-4 transition-colors hover:bg-amber-800'
+              >
+                <span class='font-mono text-sm'>4-016-0010-00</span>
+                <span class='text-amber-200 group-hover:text-neutral-100'> View Location → </span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</BaseLayout>
