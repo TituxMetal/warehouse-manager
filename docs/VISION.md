@@ -515,7 +515,7 @@ apps/web/src/
 
 ## 5. Source Material
 
-### From `astro-warehouse-visualizer` — PORT
+### From `reference/astro-warehouse-visualizer` — PORT
 
 | What          | Where                  | Notes                           |
 | ------------- | ---------------------- | ------------------------------- |
@@ -524,7 +524,7 @@ apps/web/src/
 | UI components | `src/components/`      | Rewrite in feature structure    |
 | Visual design | CSS/styles             | Dark theme, green/blue accents  |
 
-### From `astro-warehouse-visualizer` — DISCARD
+### From `reference/astro-warehouse-visualizer` — DISCARD
 
 | What                                   | Why                        |
 | -------------------------------------- | -------------------------- |
@@ -561,24 +561,26 @@ Your role: Coach/Teacher, NOT implementer
 ## Rules:
 
 1. Read files yourself - Don't ask me to paste code, use the Read tool
-2. Run verification commands yourself - After ANY code change, YOU run: bun run test, bun run
-   typecheck, bun run lint:check
+2. **IMPORTANT** ALWAYS run verification commands yourself - After ANY code change, YOU run: bun run
+   test, bun run typecheck, bun run lint:check
 3. Guide me step-by-step - Explain what to do and why, I write the code
-4. Be critical - Challenge the plan if something doesn't make sense
+4. **IMPORTANT** Be critical - Challenge the plan if something doesn't make sense
 5. Read GitHub issues - Use gh issue view <number> before starting a phase
 6. No signatures in commits - No "Generated with Claude Code" or "Co-Authored-By"
 7. ALWAYS check existing code patterns before suggesting new code
 8. NO semicolons, NO if-else (use early returns), use semantic HTML
 9. Use monorepo commands (bun run --cwd apps/api) - NEVER cd into directories
-10. Reference astro-warehouse-visualizer for domain logic and UI patterns
+10. Reference 'reference/astro-warehouse-visualizer' for domain logic and UI patterns
+11. Refer to [Code Style Rules](#code-style-rules) and
+    [Git Workflow (GitFlow)](#git-workflow-gitflow) sections
 
 ## Workflow per phase:
 
-- Read GitHub issue first (if exists)
+- Read GitHub issue first, create it (with labels and assignee) if not exists
 - Create branch from develop: git checkout -b feature/<branch-name>
 - Guide me through each step, wait for confirmation
 - After completion: YOU run all checks
-- Create PR to develop with labels
+- Create PR to develop with labels and assignee
 - Update this file with checkmarks and next phase prompt
 
 ## Current Phase: [PHASE NUMBER]
@@ -599,6 +601,7 @@ ALWAYS:
 NEVER:
 ├── No signatures in commits
 ├── No "Co-Authored-By"
+├── Merge manually EXCEPT if I ask you to do
 ├── Don't ask to paste code — use Read tool
 └── Don't ask to run commands — run them yourself
 ```
@@ -628,7 +631,7 @@ main (production-ready, stable releases)
 # 1. Create GitHub issue (for phases, not tiny fixes)
 gh issue create --title "Phase 1: Schema Migration" \
   --body "Add warehouse domain models to Prisma schema" \
-  --label "enhancement,api"
+  --label "enhancement,api" --assignee @me
 
 # 2. Create feature branch from develop
 git checkout develop
@@ -641,19 +644,16 @@ git checkout -b feature/phase-1-schema-migration
 
 # 4. Create PR to develop
 git push -u origin feature/phase-1-schema-migration
-gh pr create --base develop \
+gh pr create --base develop --assignee @me \
   --title "Phase 1: Schema Migration" \
   --body "Closes #1"
-
-# 5. Merge PR with REBASE, delete branch
-gh pr merge --rebase --delete-branch
 ```
 
 **Releasing to Main:**
 
 ```bash
 # 1. Create PR from develop to main
-gh pr create --base main --head develop \
+gh pr create --base main --head develop --assignee @me \
   --title "Release: Phase 1 complete" \
   --body "Schema migration for warehouse domain"
 
@@ -678,8 +678,7 @@ git checkout develop && git pull
 git checkout -b fix/typo-in-readme
 # ... make changes ...
 git push -u origin fix/typo-in-readme
-gh pr create --base develop --title "Fix typo in README"
-gh pr merge --rebase --delete-branch
+gh pr create --base develop --assignee @me --title "Fix typo in README"
 ```
 
 **Labels:**
@@ -698,7 +697,7 @@ gh pr merge --rebase --delete-branch
 ### Phase Checklist
 
 - [x] **Phase 0:** Project Setup
-- [ ] **Phase 1:** Schema Migration
+- [x] **Phase 1:** Schema Migration
 - [ ] **Phase 2:** Domain Layer
 - [ ] **Phase 3:** Infrastructure Layer
 - [ ] **Phase 4:** Application Layer
