@@ -494,7 +494,7 @@ describe('LocationEntity', () => {
 
   it('should format warehouse address correctly', () => {
     const location = LocationEntity.create({ position: 26, level: 30 })
-    const address = location.formatAddress(
+    const address = location.formatFullAddress(
       CellValueObject.create(4),
       AisleValueObject.create(16)
     )
