@@ -28,9 +28,8 @@ export class PositionValueObject {
   }
 
   private isValidPosition(position: number): boolean {
-    const digits = position.toString().length
-
-    if (position < 1 || digits > 4) {
+    // Position must be a positive integer with at most 4 digits (1 to 9999)
+    if (position < 1 || position > 9999) {
       return false
     }
 
