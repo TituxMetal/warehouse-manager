@@ -284,8 +284,8 @@ Value objects encode domain rules and validation. They are **immutable** and com
 apps/api/src/warehouse/domain/value-objects/
 ├── level.vo.ts          # Validates: 0-90, multiples of 10
 ├── position.vo.ts       # Validates: 1-9999
-├── aisle-number.vo.ts   # Validates: 1-999
-└── cell-number.vo.ts    # Validates: 1-9
+├── Aisle.vo.ts          # Validates: 1-999
+└── Cell.vo.ts           # Validates: 1-9
 ```
 
 **Example Value Object:**
