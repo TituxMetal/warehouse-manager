@@ -16,13 +16,13 @@ describe('LevelValueObject', () => {
 
     it('should throw error for out of range levels', () => {
       expect(() => new LevelValueObject(-10)).toThrow(
-        `Invalid level: -10. Valid levels are: 2 digits and divisible by 10`
+        `Invalid level: -10. Level must be between 0 and 90 (inclusive) and divisible by 10`
       )
       expect(() => new LevelValueObject(25)).toThrow(
-        `Invalid level: 25. Valid levels are: 2 digits and divisible by 10`
+        `Invalid level: 25. Level must be between 0 and 90 (inclusive) and divisible by 10`
       )
       expect(() => new LevelValueObject(100)).toThrow(
-        `Invalid level: 100. Valid levels are: 2 digits and divisible by 10`
+        `Invalid level: 100. Level must be between 0 and 90 (inclusive) and divisible by 10`
       )
     })
 

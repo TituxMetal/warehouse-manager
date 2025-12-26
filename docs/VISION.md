@@ -282,8 +282,8 @@ Value objects encode domain rules and validation. They are **immutable** and com
 
 ```text
 apps/api/src/warehouse/domain/value-objects/
-├── level.vo.ts          # Validates: 0-90, multiples of 10
-├── position.vo.ts       # Validates: 1-9999
+├── Level.vo.ts          # Validates: 0-90, multiples of 10
+├── Position.vo.ts       # Validates: 1-9999
 ├── Aisle.vo.ts          # Validates: 1-999
 └── Cell.vo.ts           # Validates: 1-9
 ```
@@ -291,18 +291,18 @@ apps/api/src/warehouse/domain/value-objects/
 **Example Value Object:**
 
 ```typescript
-// level.vo.ts
+// Level.vo.ts
 export class LevelValueObject {
-  private constructor(private readonly _value: number) {}
+  private readonly _value: number
 
-  static create(value: number): LevelValueObject {
+  constructor(value: number) {
     if (value < 0 || value > 90) {
       throw new Error(`Level must be between 0 and 90, got ${value}`)
     }
     if (value % 10 !== 0) {
       throw new Error(`Level must be multiple of 10, got ${value}`)
     }
-    return new LevelValueObject(value)
+    this._value = value
   }
 
   get value(): number {
@@ -402,14 +402,14 @@ export class LocationEntity {
    * Check if this location can receive products
    */
   isAvailable(): boolean {
-    return this._status === LocationStatus.AVAILABLE && !this.isBlocked()
+    return this._status === 'available' && !this.isBlocked()
   }
 
   /**
    * Format the full warehouse address
    * Requires parent context (cell, aisle numbers)
    */
-  formatFullAddress(cellNumber: CellNumberVO, aisleNumber: AisleNumberVO): string {
+  formatFullAddress(cellNumber: CellValueObject, aisleNumber: AisleValueObject): string {
     return `${cellNumber.toString()}-${aisleNumber.toString()}-${this._position.toString()}-${this._level.toString()}`
   }
 
@@ -421,7 +421,7 @@ export class LocationEntity {
       throw new Error('Location is already blocked')
     }
     this._blockReasonId = reasonId
-    this._status = LocationStatus.BLOCKED
+    this._status = 'blocked'
   }
 
   /**
@@ -432,7 +432,7 @@ export class LocationEntity {
       throw new Error('Location is not blocked')
     }
     this._blockReasonId = null
-    this._status = LocationStatus.AVAILABLE
+    this._status = 'available'
   }
 }
 ```
@@ -442,14 +442,14 @@ export class LocationEntity {
 Reference the `reference/astro-warehouse-visualizer/src/utils/warehouse.ts` file for business logic
 that should be moved INTO entities:
 
-| Entity                | Methods to Implement                                                                     |
-| --------------------- | ---------------------------------------------------------------------------------------- |
-| **CellEntity**        | `getTotalLocations()`, `getValidLevels()`, `getAisleCount()`                             |
-| **AisleEntity**       | `getLabel()` (e.g., "Aisle 016 (Odd)"), `getPositionRange()`                             |
-| **BayEntity**         | `getPositions()`, `isTunnelBay()`, `getAvailableLevels()`                                |
+| Entity                | Methods to Implement                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| **CellEntity**        | `getTotalLocations()`, `getValidLevels()`, `getAisleCount()`                                 |
+| **AisleEntity**       | `getLabel()` (e.g., "Aisle 016 (Odd)"), `getPositionRange()`                                 |
+| **BayEntity**         | `getPositions()`, `isTunnelBay()`, `getAvailableLevels()`                                    |
 | **LocationEntity**    | `isPicking()`, `isBlocked()`, `isAvailable()`, `formatFullAddress()`, `block()`, `unblock()` |
-| **BlockReasonEntity** | `getDisplayName()`                                                                       |
-| **ObstacleEntity**    | `getDisplayName()`, `isPermanent()`                                                      |
+| **BlockReasonEntity** | `getDisplayName()`, `isPermanent()`                                                          |
+| **ObstacleEntity**    | `getDisplayName()`                                                                           |
 
 #### The Principle
 
@@ -485,8 +485,8 @@ describe('LocationEntity', () => {
   })
 
   it('should report availability based on status and block reason', () => {
-    const available = new LocationEntity({ status: 'AVAILABLE', blockReasonId: null })
-    const blocked = new LocationEntity({ status: 'AVAILABLE', blockReasonId: 'pillar' })
+    const available = new LocationEntity({ status: 'available', blockReasonId: null })
+    const blocked = new LocationEntity({ status: 'available', blockReasonId: 1 })
 
     expect(available.isAvailable()).toBe(true)
     expect(blocked.isAvailable()).toBe(false)
@@ -495,8 +495,8 @@ describe('LocationEntity', () => {
   it('should format warehouse address correctly', () => {
     const location = new LocationEntity({ position: 26, level: 30 })
     const address = location.formatFullAddress(
-      CellValueObject.create(4),
-      AisleValueObject.create(16)
+      new CellValueObject(4),
+      new AisleValueObject(16)
     )
     expect(address).toBe('4-016-0026-30')
   })
