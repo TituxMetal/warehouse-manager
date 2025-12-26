@@ -7,7 +7,7 @@ export class LevelValueObject {
     }
 
     if (!this.isValidLevel(value)) {
-      throw new Error(`Invalid level: ${value}. Valid levels are: 2 digits and divisible by 10`)
+      throw new Error(`Invalid level: ${value}. Level must be between 0 and 90 (inclusive) and divisible by 10`)
     }
 
     this._value = value
