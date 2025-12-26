@@ -1,0 +1,6 @@
+export { AisleEntity } from './Aisle.entity'
+export { BayEntity } from './Bay.entity'
+export { BlockReasonEntity } from './BlockReason.entity'
+export { CellEntity } from './Cell.entity'
+export { LocationEntity } from './Location.entity'
+export { ObstacleEntity } from './Obstacle.entity'
