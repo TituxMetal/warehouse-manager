@@ -26,12 +26,7 @@ export class AisleValueObject {
   }
 
   private isValidAisle(aisle: number): boolean {
-    const digits = aisle.toString().length
-
-    if (aisle < 1 || digits > 3) {
-      return false
-    }
-
-    return true
+    // Aisle must be a positive integer between 1 and 999 (1 to 3 digits).
+    return Number.isInteger(aisle) && aisle >= 1 && aisle <= 999
   }
 }
