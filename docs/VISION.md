@@ -56,7 +56,7 @@ The warehouse uses a hierarchical addressing format: `CELL-AISLE-POSITION-LEVEL`
 
 | Component    | Value  | Description                                                                                                             |
 | ------------ | ------ | ----------------------------------------------------------------------------------------------------------------------- |
-| **Cell**     | `4`    | Major warehouse section (1-2 digits)                                                                                    |
+| **Cell**     | `4`    | Major warehouse section (1 digit)                                                                                       |
 | **Aisle**    | `016`  | Corridor within cell (3 digits, zero-padded). Each aisle exists TWICE — once for odd positions, once for even positions |
 | **Position** | `0026` | Specific slot along the aisle (4 digits, zero-padded)                                                                   |
 | **Level**    | `30`   | Vertical height (2 digits). Values: 00, 10, 20, 30, 40, 50                                                              |
@@ -263,6 +263,247 @@ features/
     ├── stores/          # Nanostores
     └── types/           # TypeScript types
 ```
+
+## NEW SECTION: Add after "Architecture Principles" in Section 3
+
+---
+
+### Domain Layer Design
+
+**CRITICAL: Entities are NOT just data classes.**
+
+In proper hexagonal/clean architecture, the domain layer contains **business logic**, not just data
+structures. This is the whole point of the architecture — to keep business rules in the domain,
+independent of frameworks.
+
+#### Value Objects
+
+Value objects encode domain rules and validation. They are **immutable** and compared by value.
+
+```text
+apps/api/src/warehouse/domain/value-objects/
+├── level.vo.ts          # Validates: 0-90, multiples of 10
+├── position.vo.ts       # Validates: 1-9999
+├── aisle-number.vo.ts   # Validates: 1-999
+└── cell-number.vo.ts    # Validates: 1-9
+```
+
+**Example Value Object:**
+
+```typescript
+// level.vo.ts
+export class LevelValueObject {
+  private constructor(private readonly _value: number) {}
+
+  static create(value: number): LevelValueObject {
+    if (value < 0 || value > 90) {
+      throw new Error(`Level must be between 0 and 90, got ${value}`)
+    }
+    if (value % 10 !== 0) {
+      throw new Error(`Level must be multiple of 10, got ${value}`)
+    }
+    return new LevelValueObject(value)
+  }
+
+  get value(): number {
+    return this._value
+  }
+
+  // BEHAVIOR: Format for display
+  toString(): string {
+    return this._value.toString().padStart(2, '0')
+  }
+
+  // BEHAVIOR: Domain logic
+  isPicking(): boolean {
+    return this._value === 0
+  }
+
+  isReserve(): boolean {
+    return this._value > 0
+  }
+
+  // BEHAVIOR: Comparison
+  equals(other: LevelValueObject): boolean {
+    return this._value === other._value
+  }
+}
+```
+
+#### Entities
+
+Entities have **identity** (an ID) and **behavior** (methods that operate on their data). They
+encapsulate business rules.
+
+**WRONG — Anemic entity (just data):**
+
+```typescript
+// ❌ This is NOT proper domain modeling
+export class LocationEntity {
+  constructor(
+    public readonly id: string,
+    public readonly position: number,
+    public readonly level: number,
+    public readonly status: string,
+    public readonly blockReasonId: string | null
+  ) {}
+}
+```
+
+**RIGHT — Rich entity (data + behavior):**
+
+```typescript
+// ✅ This IS proper domain modeling
+export class LocationEntity {
+  constructor(
+    private readonly _id: string,
+    private readonly _position: PositionValueObject,
+    private readonly _level: LevelValueObject,
+    private _status: LocationStatus,
+    private _blockReasonId: string | null,
+    private readonly _aisleId: string,
+    private readonly _bayId: string
+  ) {}
+
+  // === GETTERS (expose data) ===
+  get id(): string {
+    return this._id
+  }
+  get position(): PositionValueObject {
+    return this._position
+  }
+  get level(): LevelValueObject {
+    return this._level
+  }
+  get status(): LocationStatus {
+    return this._status
+  }
+  get blockReasonId(): string | null {
+    return this._blockReasonId
+  }
+
+  // === BEHAVIOR (domain logic) ===
+
+  /**
+   * Check if this is a picking location (ground level)
+   */
+  isPicking(): boolean {
+    return this._level.isPicking()
+  }
+
+  /**
+   * Check if this location is blocked by an obstacle
+   */
+  isBlocked(): boolean {
+    return this._blockReasonId !== null
+  }
+
+  /**
+   * Check if this location can receive products
+   */
+  isAvailable(): boolean {
+    return this._status === LocationStatus.AVAILABLE && !this.isBlocked()
+  }
+
+  /**
+   * Format the full warehouse address
+   * Requires parent context (cell, aisle numbers)
+   */
+  formatAddress(cellNumber: CellNumberVO, aisleNumber: AisleNumberVO): string {
+    return `${cellNumber.toString()}-${aisleNumber.toString()}-${this._position.toString()}-${this._level.toString()}`
+  }
+
+  /**
+   * Block this location with a reason
+   */
+  block(reasonId: string): void {
+    if (this._blockReasonId !== null) {
+      throw new Error('Location is already blocked')
+    }
+    this._blockReasonId = reasonId
+    this._status = LocationStatus.BLOCKED
+  }
+
+  /**
+   * Unblock this location
+   */
+  unblock(): void {
+    if (this._blockReasonId === null) {
+      throw new Error('Location is not blocked')
+    }
+    this._blockReasonId = null
+    this._status = LocationStatus.AVAILABLE
+  }
+}
+```
+
+#### Entity Methods by Entity
+
+Reference the `reference/astro-warehouse-visualizer/src/utils/warehouse.ts` file for business logic
+that should be moved INTO entities:
+
+| Entity                | Methods to Implement                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| **CellEntity**        | `getTotalLocations()`, `getValidLevels()`, `getAisleCount()`                             |
+| **AisleEntity**       | `getLabel()` (e.g., "Aisle 016 (Odd)"), `getPositionRange()`                             |
+| **BayEntity**         | `getPositions()`, `isTunnelBay()`, `getAvailableLevels()`                                |
+| **LocationEntity**    | `isPicking()`, `isBlocked()`, `isAvailable()`, `formatAddress()`, `block()`, `unblock()` |
+| **BlockReasonEntity** | `getDisplayName()`                                                                       |
+| **ObstacleEntity**    | `getDisplayName()`, `isPermanent()`                                                      |
+
+#### The Principle
+
+> **"If you have a utility function that takes entity data and does something with it, that function
+> probably belongs IN the entity."**
+
+Look at `reference/astro-warehouse-visualizer/src/utils/warehouse.ts` — most of those utility
+functions should become entity methods in proper clean architecture.
+
+#### Testing Entities
+
+Test the **behavior**, not just construction:
+
+```typescript
+// ❌ Weak test — only tests construction
+describe('LocationEntity', () => {
+  it('should create a location', () => {
+    const location = new LocationEntity(...)
+    expect(location.id).toBe('123')
+  })
+})
+
+// ✅ Strong test — tests behavior
+describe('LocationEntity', () => {
+  it('should identify picking locations at level 00', () => {
+    const location = LocationEntity.create({ level: 0, ... })
+    expect(location.isPicking()).toBe(true)
+  })
+
+  it('should identify reserve locations at level 10+', () => {
+    const location = LocationEntity.create({ level: 30, ... })
+    expect(location.isPicking()).toBe(false)
+  })
+
+  it('should report availability based on status and block reason', () => {
+    const available = LocationEntity.create({ status: 'AVAILABLE', blockReasonId: null })
+    const blocked = LocationEntity.create({ status: 'AVAILABLE', blockReasonId: 'pillar' })
+
+    expect(available.isAvailable()).toBe(true)
+    expect(blocked.isAvailable()).toBe(false)
+  })
+
+  it('should format warehouse address correctly', () => {
+    const location = LocationEntity.create({ position: 26, level: 30 })
+    const address = location.formatAddress(
+      CellNumberVO.create(4),
+      AisleNumberVO.create(16)
+    )
+    expect(address).toBe('4-016-0026-30')
+  })
+})
+```
+
+---
 
 ### Key Technical Decisions
 
@@ -554,34 +795,49 @@ apps/web/src/
 Use this prompt when starting a Claude Code session:
 
 ```markdown
-Continue coaching me through the Warehouse Manager migration plan at docs/VISION.md
+Coach me through the Warehouse Manager migration plan at docs/VISION.md
 
-Your role: Coach/Teacher, NOT implementer
+## PRIORITY HIERARCHY (in order of importance):
 
-## Rules:
+1. **I WRITE THE CODE** — You guide and explain, I implement. Never write code for me unless I
+   explicitly ask.
+2. **VERIFY BEFORE ACTING** — Check that commands exist in package.json before running them.
+3. **ATOMIC WORK** — One logical step at a time, wait for my confirmation before proceeding.
+4. **FOLLOW CODE STYLE** — NO semicolons, NO if-else (early returns only), semantic HTML.
 
-1. Read files yourself - Don't ask me to paste code, use the Read tool
-2. **IMPORTANT** ALWAYS run verification commands yourself - After ANY code change, YOU run: bun run
-   test, bun run typecheck, bun run lint:check
-3. Guide me step-by-step - Explain what to do and why, I write the code
-4. **IMPORTANT** Be critical - Challenge the plan if something doesn't make sense
-5. Read GitHub issues - Use gh issue view <number> before starting a phase
-6. No signatures in commits - No "Generated with Claude Code" or "Co-Authored-By"
-7. ALWAYS check existing code patterns before suggesting new code
-8. NO semicolons, NO if-else (use early returns), use semantic HTML
-9. Use monorepo commands (bun run --cwd apps/api) - NEVER cd into directories
-10. Reference 'reference/astro-warehouse-visualizer' for domain logic and UI patterns
-11. Refer to [Code Style Rules](#code-style-rules) and
-    [Git Workflow (GitFlow)](#git-workflow-gitflow) sections
+## YOUR RESPONSIBILITIES:
 
-## Workflow per phase:
+- Read files yourself (use Read tool, never ask me to paste)
+- Run verification commands yourself: `bun run --cwd apps/api test`, `bun run typecheck`,
+  `bun run lint:check`
+- Use monorepo commands ONLY: `bun run --cwd apps/api ` — NEVER `cd` into directories
+- Reference existing patterns in codebase and `reference/astro-warehouse-visualizer`
+- Challenge the plan if something doesn't make sense
 
-- Read GitHub issue first, create it (with labels and assignee) if not exists
-- Create branch from develop: git checkout -b feature/<branch-name>
-- Guide me through each step, wait for confirmation
-- After completion: YOU run all checks
-- Create PR to develop with labels and assignee
-- Update this file with checkmarks and next phase prompt
+## GIT WORKFLOW:
+
+- **Atomic commits**: One logical change per commit (not 27 files in one commit)
+- **Commit messages**: List ALL files including tests (e.g., "Add X entity with tests")
+- **Before final phase commit**: Update VISION.md progress checklist first
+- **No signatures**: No "Generated with Claude Code" or "Co-Authored-By"
+- **Branches**: Create from develop, PR back to develop
+
+## PHASE WORKFLOW:
+
+1. Read/create GitHub issue (with labels: api, web, docs, infra)
+2. Create branch: `git checkout -b feature/`
+3. Guide me through each step — I write the code
+4. After changes: YOU run all verification checks
+5. Guide me through atomic commits
+6. Update VISION.md progress, final commit
+7. Create PR to develop with labels and assignee
+
+## CRITICAL REMINDERS:
+
+- "Continue without questions" means don't ask CLARIFYING questions — it does NOT mean write all
+  code yourself
+- If session resumes mid-task, summarize where we are and what I need to do next
+- Tests are learning opportunities — guide me to write them, don't write them for me
 
 ## Current Phase: [PHASE NUMBER]
 ```
@@ -594,16 +850,19 @@ ALWAYS:
 ├── NO if-else (use early returns)
 ├── Semantic HTML
 ├── Monorepo commands: bun run --cwd apps/api (NEVER cd)
-├── Check existing patterns before new code
+├── Check existing patterns before suggesting new code
 ├── Zinc gray scale (no pure white/black)
 └── Maximum unit test coverage
 
 NEVER:
+├── Write code without guidance (I write, you guide)
+├── Use commands without verifying they exist
+├── Commit many unrelated files together
+├── Skip updating progress checklist
 ├── No signatures in commits
 ├── No "Co-Authored-By"
 ├── Merge manually EXCEPT if I ask you to do
-├── Don't ask to paste code — use Read tool
-└── Don't ask to run commands — run them yourself
+└── Don't ask to paste code — use Read tool
 ```
 
 ### Git Workflow (GitFlow)
@@ -625,28 +884,43 @@ main (production-ready, stable releases)
 | `feature/*` | Work branches for phases/features.                         |
 | `fix/*`     | Small fixes that don't need an issue.                      |
 
+**Atomic Commit Examples:**
+
+```bash
+# ✅ GOOD - logical units
+git add src/warehouse/domain/value-objects/
+git commit -m "feat(api): add warehouse value objects with validation and tests
+
+- Level.vo.ts: validates 0-90, multiples of 10
+- Position.vo.ts: validates 1-9999
+- AisleNumber.vo.ts: validates 1-999
+- CellNumber.vo.ts: validates 1-9
+- All value objects have unit tests"
+
+# ❌ BAD - dump everything
+git add src/warehouse/
+git commit -m "feat(api): add warehouse domain layer"
+```
+
 **Starting a New Phase:**
 
 ```bash
-# 1. Create GitHub issue (for phases, not tiny fixes)
-gh issue create --title "Phase 1: Schema Migration" \
-  --body "Add warehouse domain models to Prisma schema" \
+# 1. Create GitHub issue
+gh issue create --title "Phase X: [Name]" \
+  --body "[Description]" \
   --label "enhancement,api" --assignee @me
 
 # 2. Create feature branch from develop
 git checkout develop
 git pull origin develop
-git checkout -b feature/phase-1-schema-migration
+git checkout -b feature/phase-x-name
 
-# 3. Work, commit, push
-# Commits follow conventional commits (commitlint enforces)
-# Reference issue: feat(api): add Cell model (#1)
-
-# 4. Create PR to develop
-git push -u origin feature/phase-1-schema-migration
+# 3. Work in atomic steps, commit logically
+# 4. Update VISION.md checklist
+# 5. Create PR to develop
 gh pr create --base develop --assignee @me \
-  --title "Phase 1: Schema Migration" \
-  --body "Closes #1"
+  --title "Phase X: [Name]" \
+  --body "Closes #N"
 ```
 
 **Releasing to Main:**
@@ -656,9 +930,6 @@ gh pr create --base develop --assignee @me \
 gh pr create --base main --head develop --assignee @me \
   --title "Release: Phase 1 complete" \
   --body "Schema migration for warehouse domain"
-
-# 2. Merge PR with REBASE (linear history, no merge commits)
-gh pr merge --rebase
 
 # 3. Sync develop with main (important after rebase!)
 git checkout develop && git pull origin develop
@@ -698,7 +969,7 @@ gh pr create --base develop --assignee @me --title "Fix typo in README"
 
 - [x] **Phase 0:** Project Setup
 - [x] **Phase 1:** Schema Migration
-- [ ] **Phase 2:** Domain Layer
+- [x] **Phase 2:** Domain Layer
 - [ ] **Phase 3:** Infrastructure Layer
 - [ ] **Phase 4:** Application Layer
 - [ ] **Phase 5:** Frontend Integration
@@ -706,4 +977,4 @@ gh pr create --base develop --assignee @me --title "Fix typo in README"
 
 ---
 
-_Document created: December 22, 2025_ _Last updated: December 24, 2025_
+_Document created: December 22, 2025_ _Last updated: December 26, 2025_
