@@ -26,9 +26,12 @@ export class CellValueObject {
   }
 
   private isValidCell(cell: number): boolean {
-    const digits = cell.toString().length
+    // A valid cell must be a single positive digit: an integer from 1 to 9.
+    if (!Number.isInteger(cell)) {
+      return false
+    }
 
-    if (cell < 1 || digits > 1) {
+    if (cell < 1 || cell > 9) {
       return false
     }
 
