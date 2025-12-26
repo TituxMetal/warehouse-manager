@@ -40,30 +40,30 @@ describe('AisleValueObject', () => {
   })
 
   describe('equals', () => {
-    it('should return true for identical ailses', () => {
-      const ailse1 = new AisleValueObject(13)
-      const ailse2 = new AisleValueObject(13)
+    it('should return true for identical aisles', () => {
+      const aisle1 = new AisleValueObject(13)
+      const aisle2 = new AisleValueObject(13)
 
-      expect(ailse1.equals(ailse2)).toBe(true)
+      expect(aisle1.equals(aisle2)).toBe(true)
     })
 
-    it('should return false for different ailses', () => {
-      const ailse1 = new AisleValueObject(16)
-      const ailse2 = new AisleValueObject(20)
+    it('should return false for different aisles', () => {
+      const aisle1 = new AisleValueObject(16)
+      const aisle2 = new AisleValueObject(20)
 
-      expect(ailse1.equals(ailse2)).toBe(false)
+      expect(aisle1.equals(aisle2)).toBe(false)
     })
   })
 
   describe('toString', () => {
-    it('should return the string padded ailse', () => {
-      const ailse1 = new AisleValueObject(1)
-      const ailse2 = new AisleValueObject(25)
-      const ailse3 = new AisleValueObject(125)
+    it('should return the string padded aisle', () => {
+      const aisle1 = new AisleValueObject(1)
+      const aisle2 = new AisleValueObject(25)
+      const aisle3 = new AisleValueObject(125)
 
-      expect(ailse1.toString()).toBe('001')
-      expect(ailse2.toString()).toBe('025')
-      expect(ailse3.toString()).toBe('125')
+      expect(aisle1.toString()).toBe('001')
+      expect(aisle2.toString()).toBe('025')
+      expect(aisle3.toString()).toBe('125')
     })
   })
 })
