@@ -495,8 +495,8 @@ describe('LocationEntity', () => {
   it('should format warehouse address correctly', () => {
     const location = LocationEntity.create({ position: 26, level: 30 })
     const address = location.formatAddress(
-      CellNumberVO.create(4),
-      AisleNumberVO.create(16)
+      CellValueObject.create(4),
+      AisleValueObject.create(16)
     )
     expect(address).toBe('4-016-0026-30')
   })
