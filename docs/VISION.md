@@ -447,7 +447,7 @@ that should be moved INTO entities:
 | **CellEntity**        | `getTotalLocations()`, `getValidLevels()`, `getAisleCount()`                             |
 | **AisleEntity**       | `getLabel()` (e.g., "Aisle 016 (Odd)"), `getPositionRange()`                             |
 | **BayEntity**         | `getPositions()`, `isTunnelBay()`, `getAvailableLevels()`                                |
-| **LocationEntity**    | `isPicking()`, `isBlocked()`, `isAvailable()`, `formatAddress()`, `block()`, `unblock()` |
+| **LocationEntity**    | `isPicking()`, `isBlocked()`, `isAvailable()`, `formatFullAddress()`, `block()`, `unblock()` |
 | **BlockReasonEntity** | `getDisplayName()`                                                                       |
 | **ObstacleEntity**    | `getDisplayName()`, `isPermanent()`                                                      |
 
