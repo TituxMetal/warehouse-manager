@@ -475,25 +475,25 @@ describe('LocationEntity', () => {
 // ✅ Strong test — tests behavior
 describe('LocationEntity', () => {
   it('should identify picking locations at level 00', () => {
-    const location = LocationEntity.create({ level: 0, ... })
+    const location = new LocationEntity({ level: 0, ... })
     expect(location.isPicking()).toBe(true)
   })
 
   it('should identify reserve locations at level 10+', () => {
-    const location = LocationEntity.create({ level: 30, ... })
+    const location = new LocationEntity({ level: 30, ... })
     expect(location.isPicking()).toBe(false)
   })
 
   it('should report availability based on status and block reason', () => {
-    const available = LocationEntity.create({ status: 'AVAILABLE', blockReasonId: null })
-    const blocked = LocationEntity.create({ status: 'AVAILABLE', blockReasonId: 'pillar' })
+    const available = new LocationEntity({ status: 'AVAILABLE', blockReasonId: null })
+    const blocked = new LocationEntity({ status: 'AVAILABLE', blockReasonId: 'pillar' })
 
     expect(available.isAvailable()).toBe(true)
     expect(blocked.isAvailable()).toBe(false)
   })
 
   it('should format warehouse address correctly', () => {
-    const location = LocationEntity.create({ position: 26, level: 30 })
+    const location = new LocationEntity({ position: 26, level: 30 })
     const address = location.formatFullAddress(
       CellValueObject.create(4),
       AisleValueObject.create(16)
