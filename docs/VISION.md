@@ -409,7 +409,7 @@ export class LocationEntity {
    * Format the full warehouse address
    * Requires parent context (cell, aisle numbers)
    */
-  formatAddress(cellNumber: CellNumberVO, aisleNumber: AisleNumberVO): string {
+  formatFullAddress(cellNumber: CellNumberVO, aisleNumber: AisleNumberVO): string {
     return `${cellNumber.toString()}-${aisleNumber.toString()}-${this._position.toString()}-${this._level.toString()}`
   }
 
