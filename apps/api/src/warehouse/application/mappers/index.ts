@@ -1,0 +1,5 @@
+export { AisleMapper } from './Aisle.mapper'
+export { BayMapper } from './Bay.mapper'
+export { BlockReasonMapper } from './BlockReason.mapper'
+export { CellMapper } from './Cell.mapper'
+export { LocationMapper } from './Location.mapper'
