@@ -1,3 +1,4 @@
+import { LocationAlreadyBlockedException, LocationNotBlockedException } from '../exceptions'
 import type { AisleValueObject } from '../value-objects/Aisle.vo'
 import type { CellValueObject } from '../value-objects/Cell.vo'
 import type { LevelValueObject } from '../value-objects/Level.vo'
@@ -53,7 +54,7 @@ export class LocationEntity {
    */
   block(reasonId: number): void {
     if (this._blockReasonId !== null) {
-      throw new Error('Location is already blocked')
+      throw new LocationAlreadyBlockedException(this.id)
     }
 
     this._blockReasonId = reasonId
@@ -65,7 +66,7 @@ export class LocationEntity {
    */
   unblock(): void {
     if (this._blockReasonId === null) {
-      throw new Error('Location is not blocked')
+      throw new LocationNotBlockedException(this.id)
     }
 
     this._blockReasonId = null

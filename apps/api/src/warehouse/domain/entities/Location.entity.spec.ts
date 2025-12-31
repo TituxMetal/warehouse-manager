@@ -93,7 +93,9 @@ describe('LocationEntity', () => {
     it('should throw error if already blocked', () => {
       const blockedLocation = createLocation({ blockReasonId: 42, status: 'blocked' })
 
-      expect(() => blockedLocation.block(42)).toThrow('Location is already blocked')
+      expect(() => blockedLocation.block(42)).toThrow(
+        `Location ${blockedLocation.id} is already blocked`
+      )
     })
   })
 
@@ -110,7 +112,9 @@ describe('LocationEntity', () => {
     it('should throw error if not blocked', () => {
       const unblockedLocation = createLocation({ blockReasonId: null, status: 'available' })
 
-      expect(() => unblockedLocation.unblock()).toThrow('Location is not blocked')
+      expect(() => unblockedLocation.unblock()).toThrow(
+        `Location ${unblockedLocation.id} is not blocked`
+      )
     })
   })
 
