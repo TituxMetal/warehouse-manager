@@ -1,4 +1,5 @@
-export type { IAisleRepository } from './Aisle.repository'
-export type { IBayRepository } from './Bay.repository'
-export type { ICellRepository } from './Cell.repository'
+export type { AisleWithBays, AisleWithLocations, IAisleRepository } from './Aisle.repository'
+export type { BayWithLocations, IBayRepository } from './Bay.repository'
+export type { IBlockReasonRepository } from './BlockReason.repository'
+export type { CellWithAisles, ICellRepository } from './Cell.repository'
 export type { ILocationRepository } from './Location.repository'
