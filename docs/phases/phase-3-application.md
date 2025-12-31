@@ -1,146 +1,163 @@
-# Phase 3: Application Layer
+# Phase 3: Simple Application Layer
 
-**Goal:** Create use cases and DTOs that define WHAT the system does.
+> Use cases that DON'T need domain services.
 
-**Why before Infrastructure?** In hexagonal architecture, Application layer defines the use cases
-that Infrastructure will expose. Controllers CALL use cases, so use cases must exist first.
+## Goal
 
----
+Create DTOs, mappers, and simple use cases that can work with existing domain entities and
+repository interfaces. Complex use cases (CreateCell, GetLocationByAddress) are deferred to Phase 5.
 
-## Structure
+## Why This Scope?
+
+In hexagonal architecture, we build from the inside out. Simple read/write operations only need:
+
+- Repository interfaces (already exist in domain layer)
+- DTOs (data transfer objects)
+- Mappers (entity ↔ DTO conversion)
+
+Complex operations that require business logic calculations (like generating warehouse structure)
+need domain services, which are Phase 4.
+
+## Prerequisites
+
+Add missing repository interface to domain layer:
 
 ```text
-apps/api/src/warehouse/
-└── application/
-    ├── use-cases/
-    │   ├── CreateCell.uc.ts
-    │   ├── CreateCell.uc.spec.ts
-    │   ├── GetCellOverview.uc.ts
-    │   ├── GetCellOverview.uc.spec.ts
-    │   ├── GetAisleDetails.uc.ts
-    │   ├── GetAisleDetails.uc.spec.ts
-    │   ├── FindLocation.uc.ts
-    │   ├── FindLocation.uc.spec.ts
-    │   └── index.ts
-    ├── dtos/
-    │   ├── CreateCell.dto.ts
-    │   ├── CellResponse.dto.ts
-    │   ├── AisleResponse.dto.ts
-    │   ├── LocationResponse.dto.ts
-    │   └── index.ts
-    └── index.ts
+apps/api/src/warehouse/domain/repositories/BlockReason.repository.ts
 ```
 
----
+## What to Build
 
-## Steps
-
-| Step | Action                                                                            | Verification                |
-| ---- | --------------------------------------------------------------------------------- | --------------------------- |
-| 3.1  | Create `application/use-cases/` folder                                            | Folder exists               |
-| 3.2  | Create `CreateCell.uc.ts` — injects repository interface, executes business logic | File created                |
-| 3.3  | Write tests for `CreateCell.uc.ts` (mock repository)                              | Tests pass                  |
-| 3.4  | Create `GetCellOverview.uc.ts` — returns cell with stats                          | File created                |
-| 3.5  | Write tests for `GetCellOverview.uc.ts`                                           | Tests pass                  |
-| 3.6  | Create `GetAisleDetails.uc.ts` — returns aisle with locations                     | File created                |
-| 3.7  | Write tests for `GetAisleDetails.uc.ts`                                           | Tests pass                  |
-| 3.8  | Create `FindLocation.uc.ts` — find by address string                              | File created                |
-| 3.9  | Write tests for `FindLocation.uc.ts`                                              | Tests pass                  |
-| 3.10 | Create `application/dtos/` folder                                                 | Folder exists               |
-| 3.11 | Create DTOs for requests/responses                                                | DTOs typed                  |
-| 3.12 | Create barrel exports (`index.ts`)                                                | Exports work                |
-| 3.13 | Run all checks                                                                    | Tests, typecheck, lint pass |
-| 3.14 | Commit with atomic commits                                                        | Committed                   |
-| 3.15 | Update VISION.md progress                                                         | Checklist updated           |
-| 3.16 | Create PR to develop                                                              | PR created                  |
-
----
-
-## Use Case Pattern
-
-Reference existing patterns in `apps/api/src/users/` if available.
-
-```typescript
-// CreateCell.uc.ts
-import { ICellRepository } from '../domain/repositories/Cell.repository'
-import { CellEntity } from '../domain/entities/Cell.entity'
-import { CreateCellDto } from '../dtos/CreateCell.dto'
-import { CellResponseDto } from '../dtos/CellResponse.dto'
-
-export class CreateCellUseCase {
-  constructor(private readonly cellRepository: ICellRepository) {}
-
-  async execute(dto: CreateCellDto): Promise<CellResponseDto> {
-    // Validate business rules
-    // Create entity
-    // Save via repository
-    // Return response DTO
-  }
-}
+```text
+apps/api/src/warehouse/application/
+├── dtos/
+│   ├── index.ts
+│   ├── CellResponse.dto.ts
+│   ├── AisleResponse.dto.ts
+│   ├── BayResponse.dto.ts
+│   ├── LocationResponse.dto.ts
+│   ├── BlockReasonResponse.dto.ts
+│   ├── CreateBlockReason.dto.ts
+│   ├── UpdateBlockReason.dto.ts
+│   └── BlockLocation.dto.ts
+├── mappers/
+│   ├── index.ts
+│   ├── Cell.mapper.ts + spec
+│   ├── Aisle.mapper.ts
+│   ├── Bay.mapper.ts
+│   ├── Location.mapper.ts
+│   └── BlockReason.mapper.ts
+├── use-cases/
+│   ├── index.ts
+│   ├── cell/
+│   │   ├── GetAllCells.uc.ts + spec
+│   │   ├── GetCellById.uc.ts + spec
+│   │   ├── GetCellByNumber.uc.ts
+│   │   ├── GetCellWithAisles.uc.ts
+│   │   ├── GetCellStatistics.uc.ts
+│   │   └── DeleteCell.uc.ts
+│   ├── aisle/
+│   │   ├── GetAisleById.uc.ts
+│   │   ├── GetAislesByCellId.uc.ts
+│   │   ├── GetAisleWithBays.uc.ts
+│   │   └── GetAisleWithLocations.uc.ts
+│   ├── bay/
+│   │   ├── GetBayById.uc.ts
+│   │   ├── GetBaysByAisleId.uc.ts
+│   │   └── GetBayWithLocations.uc.ts
+│   ├── location/
+│   │   ├── GetLocationById.uc.ts
+│   │   ├── GetLocationsByBayId.uc.ts
+│   │   ├── GetLocationsByAisleId.uc.ts
+│   │   ├── GetPickingLocations.uc.ts
+│   │   ├── GetAvailableLocations.uc.ts
+│   │   ├── GetBlockedLocations.uc.ts
+│   │   ├── BlockLocation.uc.ts + spec
+│   │   └── UnblockLocation.uc.ts + spec
+│   └── block-reason/
+│       ├── GetAllBlockReasons.uc.ts
+│       ├── GetBlockReasonById.uc.ts
+│       ├── CreateBlockReason.uc.ts + spec
+│       ├── UpdateBlockReason.uc.ts
+│       └── DeleteBlockReason.uc.ts
+├── services/
+│   ├── index.ts
+│   ├── Cell.service.ts + spec
+│   ├── Aisle.service.ts
+│   ├── Bay.service.ts
+│   ├── Location.service.ts
+│   └── BlockReason.service.ts
+└── index.ts
 ```
 
----
+## Use Cases in This Phase
 
-## DTO Pattern
+| Entity      | Use Case              | Type  | Description               |
+| ----------- | --------------------- | ----- | ------------------------- |
+| Cell        | GetAllCells           | Read  | List all cells            |
+| Cell        | GetCellById           | Read  | Get by ID                 |
+| Cell        | GetCellByNumber       | Read  | Get by number (1-9)       |
+| Cell        | GetCellWithAisles     | Read  | Get with nested aisles    |
+| Cell        | GetCellStatistics     | Read  | Count locations by status |
+| Cell        | DeleteCell            | Write | Cascade delete            |
+| Aisle       | GetAisleById          | Read  | Get by ID                 |
+| Aisle       | GetAislesByCellId     | Read  | Get all for a cell        |
+| Aisle       | GetAisleWithBays      | Read  | Get with nested bays      |
+| Aisle       | GetAisleWithLocations | Read  | Get with all locations    |
+| Bay         | GetBayById            | Read  | Get by ID                 |
+| Bay         | GetBaysByAisleId      | Read  | Get all for an aisle      |
+| Bay         | GetBayWithLocations   | Read  | Get with nested locations |
+| Location    | GetLocationById       | Read  | Get by ID                 |
+| Location    | GetLocationsByBayId   | Read  | Get all in a bay          |
+| Location    | GetLocationsByAisleId | Read  | Get all in an aisle       |
+| Location    | GetPickingLocations   | Read  | Get all level-0           |
+| Location    | GetAvailableLocations | Read  | Get unblocked available   |
+| Location    | GetBlockedLocations   | Read  | Get all blocked           |
+| Location    | BlockLocation         | Write | Set blockReasonId         |
+| Location    | UnblockLocation       | Write | Remove blockReasonId      |
+| BlockReason | GetAllBlockReasons    | Read  | List all                  |
+| BlockReason | GetBlockReasonById    | Read  | Get by ID                 |
+| BlockReason | CreateBlockReason     | Write | Create new                |
+| BlockReason | UpdateBlockReason     | Write | Update existing           |
+| BlockReason | DeleteBlockReason     | Write | Delete (if not in use)    |
 
-DTOs are simple data transfer objects — no behavior, just typed data.
+**Total: 26 use cases** (all simple, no domain services needed)
 
-```typescript
-// CreateCell.dto.ts
-export interface CreateCellDto {
-  name: string
-  aisleCount: number
-  positionsPerAisle: number
-  levelsPerPosition: number
-}
+## NOT in This Phase
 
-// CellResponse.dto.ts
-export interface CellResponseDto {
-  id: number
-  name: string
-  aisleCount: number
-  totalLocations: number
-  createdAt: Date
-}
-```
+These require domain services (Phase 5):
 
----
+- ❌ `CreateCell` — needs `CellStructureCalculator`
+- ❌ `GetLocationByAddress` — needs `LocationAddressParser`
 
-## Testing Use Cases
+## Implementation Order
 
-Mock the repository interface — use cases don't touch the database.
+1. **DTOs** (no dependencies)
+2. **Mappers** (depend on DTOs + entities)
+3. **Read use cases** (depend on mappers + repo interfaces)
+4. **Write use cases** (depend on mappers + repo interfaces)
+5. **Services** (depend on use cases)
 
-```typescript
-// CreateCell.uc.spec.ts
-import { describe, expect, it, mock } from 'bun:test'
-import { CreateCellUseCase } from './CreateCell.uc'
+## Verification
 
-const mockCellRepository = {
-  create: mock(() => Promise.resolve({ id: 1, name: 'Cell A', ... })),
-  findById: mock(() => Promise.resolve(null)),
-  // ... other methods
-}
+- [x] All use cases have unit tests with mocked repositories
+- [x] All DTOs use class-validator decorators
+- [x] `bun run --cwd apps/api test` passes
+- [x] `bun run typecheck` passes
+- [x] `bun run lint:check` passes
 
-describe('CreateCellUseCase', () => {
-  it('should create a cell and return response dto', async () => {
-    const useCase = new CreateCellUseCase(mockCellRepository)
-    const result = await useCase.execute({ name: 'Cell A', ... })
+## Commits
 
-    expect(result.id).toBe(1)
-    expect(mockCellRepository.create).toHaveBeenCalled()
-  })
-})
-```
+Use atomic commits:
 
----
+- `feat(api): add IBlockReasonRepository interface`
+- `feat(api): add warehouse response DTOs`
+- `feat(api): add warehouse application mappers`
+- `feat(api): add GetAllCells use case with tests`
+- `feat(api): add BlockLocation use case with tests`
+- etc.
 
-## Commits for this Phase
+## References
 
-Suggested atomic commits:
-
-1. `feat(api): add CreateCell use case with tests`
-2. `feat(api): add GetCellOverview use case with tests`
-3. `feat(api): add GetAisleDetails use case with tests`
-4. `feat(api): add FindLocation use case with tests`
-5. `feat(api): add application layer DTOs`
-6. `docs: update VISION.md for Phase 3 completion`
+- Pattern: See `apps/api/src/users/application/` for existing patterns
+- Full roadmap: See `docs/ROADMAP.md`

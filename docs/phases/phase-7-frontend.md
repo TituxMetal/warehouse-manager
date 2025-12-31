@@ -1,4 +1,4 @@
-# Phase 5: Frontend Integration
+# Phase 7: Frontend Integration
 
 **Goal:** Port visualization from astro-warehouse-visualizer to the new architecture.
 
@@ -153,4 +153,4 @@ Suggested atomic commits:
 6. `feat(web): add warehouse pages with routing`
 7. `style(web): apply dark zinc theme`
 8. `test(web): add component tests`
-9. `docs: update VISION.md for Phase 5 completion`
+9. `docs: update VISION.md for Phase 7 completion`
