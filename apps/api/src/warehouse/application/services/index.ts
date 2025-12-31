@@ -1,0 +1,5 @@
+export { AisleService } from './Aisle.service'
+export { BayService } from './Bay.service'
+export { BlockReasonService } from './BlockReason.service'
+export { CellService } from './Cell.service'
+export { LocationService } from './Location.service'
