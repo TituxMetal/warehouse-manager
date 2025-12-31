@@ -1,4 +1,4 @@
-# Phase 4: Infrastructure Layer
+# Phase 6: Infrastructure Layer
 
 **Goal:** Implement Prisma repositories and NestJS controllers that expose the use cases.
 
@@ -35,24 +35,24 @@ apps/api/src/warehouse/
 
 | Step | Action                                                                  | Verification                |
 | ---- | ----------------------------------------------------------------------- | --------------------------- |
-| 4.1  | Create `infrastructure/repositories/` folder                            | Folder exists               |
-| 4.2  | Create `PrismaCell.repository.ts` — implements ICellRepository          | File created                |
-| 4.3  | Write tests for PrismaCell.repository (mock Prisma client)              | Tests pass                  |
-| 4.4  | Create `PrismaAisle.repository.ts`                                      | File created                |
-| 4.5  | Create `PrismaBay.repository.ts`                                        | File created                |
-| 4.6  | Create `PrismaLocation.repository.ts`                                   | File created                |
-| 4.7  | Create `infrastructure/controllers/` folder                             | Folder exists               |
-| 4.8  | Create `Cell.controller.ts` — injects use cases, exposes REST endpoints | File created                |
-| 4.9  | Write tests for Cell.controller                                         | Tests pass                  |
-| 4.10 | Create `Aisle.controller.ts`                                            | File created                |
-| 4.11 | Create `Location.controller.ts`                                         | File created                |
-| 4.12 | Create `Warehouse.module.ts` — registers providers and controllers      | File created                |
-| 4.13 | Register WarehouseModule in `app.module.ts`                             | API responds                |
-| 4.14 | Write integration tests                                                 | Tests pass                  |
-| 4.15 | Run all checks                                                          | Tests, typecheck, lint pass |
-| 4.16 | Commit with atomic commits                                              | Committed                   |
-| 4.17 | Update VISION.md progress                                               | Checklist updated           |
-| 4.18 | Create PR to develop                                                    | PR created                  |
+| 6.1  | Create `infrastructure/repositories/` folder                            | Folder exists               |
+| 6.2  | Create `PrismaCell.repository.ts` — implements ICellRepository          | File created                |
+| 6.3  | Write tests for PrismaCell.repository (mock Prisma client)              | Tests pass                  |
+| 6.4  | Create `PrismaAisle.repository.ts`                                      | File created                |
+| 6.5  | Create `PrismaBay.repository.ts`                                        | File created                |
+| 6.6  | Create `PrismaLocation.repository.ts`                                   | File created                |
+| 6.7  | Create `infrastructure/controllers/` folder                             | Folder exists               |
+| 6.8  | Create `Cell.controller.ts` — injects use cases, exposes REST endpoints | File created                |
+| 6.9  | Write tests for Cell.controller                                         | Tests pass                  |
+| 6.10 | Create `Aisle.controller.ts`                                            | File created                |
+| 6.11 | Create `Location.controller.ts`                                         | File created                |
+| 6.12 | Create `Warehouse.module.ts` — registers providers and controllers      | File created                |
+| 6.13 | Register WarehouseModule in `app.module.ts`                             | API responds                |
+| 6.14 | Write integration tests                                                 | Tests pass                  |
+| 6.15 | Run all checks                                                          | Tests, typecheck, lint pass |
+| 6.16 | Commit with atomic commits                                              | Committed                   |
+| 6.17 | Update VISION.md progress                                               | Checklist updated           |
+| 6.18 | Create PR to develop                                                    | PR created                  |
 
 ---
 
@@ -210,4 +210,4 @@ Suggested atomic commits:
 4. `feat(api): add Aisle and Location controllers`
 5. `feat(api): add Warehouse module and register in app`
 6. `test(api): add integration tests for warehouse endpoints`
-7. `docs: update VISION.md for Phase 4 completion`
+7. `docs: update VISION.md for Phase 6 completion`

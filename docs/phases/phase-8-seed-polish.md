@@ -1,4 +1,4 @@
-# Phase 6: Seed Data & Polish
+# Phase 8: Seed Data & Polish
 
 **Goal:** Create realistic test data and polish the user experience.
 
@@ -150,4 +150,4 @@ Suggested atomic commits:
 5. `feat(web): add error handling and empty states`
 6. `feat(web): add breadcrumb navigation`
 7. `style(web): final UI polish`
-8. `docs: update VISION.md for Phase 6 completion`
+8. `docs: update VISION.md for Phase 8 completion`

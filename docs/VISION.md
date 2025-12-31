@@ -13,8 +13,10 @@
 
 **Related Documents:**
 
-- [Coaching Skill](.claude/skills/coaching/SKILL.md) — Rules for Claude Code sessions
-- [Phase Files](docs/phases/) — Detailed instructions per phase
+- [ROADMAP.md](./ROADMAP.md) — **Complete implementation plan** (use cases, domain services,
+  endpoints)
+- [Coaching Skill](../.claude/skills/coaching/SKILL.md) — Rules for Claude Code sessions
+- [Phase Files](./phases/) — Detailed instructions per phase
 
 ---
 
@@ -287,24 +289,30 @@ Accent Odd:  Blue (sky)
 
 ## 4. Progress Tracking
 
+> **See [ROADMAP.md](./ROADMAP.md) for the complete implementation plan** with every use case,
+> domain service, and API endpoint documented.
+
 ### Phase Checklist
 
 - [x] **Phase 0:** Project Setup
 - [x] **Phase 1:** Schema Migration
-- [x] **Phase 2:** Domain Layer
-- [ ] **Phase 3:** Application Layer ← **NEXT**
-- [ ] **Phase 4:** Infrastructure Layer
-- [ ] **Phase 5:** Frontend Integration
-- [ ] **Phase 6:** Seed Data & Polish
+- [x] **Phase 2:** Domain Layer (entities, VOs, repo interfaces)
+- [x] **Phase 3:** Simple Application Layer (DTOs, mappers, simple use cases)
+- [ ] **Phase 4:** Domain Services ← **NEXT** (CellStructureCalculator, LocationAddressParser)
+- [ ] **Phase 5:** Complex Use Cases (CreateCell, GetLocationByAddress)
+- [ ] **Phase 6:** Infrastructure Layer (Prisma repos, controllers, endpoints)
+- [ ] **Phase 7:** Frontend Integration
+- [ ] **Phase 8:** Seed Data & Polish
 
 ### Future Phases (Post-MVP)
 
 | Phase | Feature                 |
 | ----- | ----------------------- |
-| 7     | Products in Locations   |
-| 8     | Stock movement tracking |
-| 9     | Search functionality    |
+| 9     | Products in Locations   |
+| 10    | Stock movement tracking |
+| 11    | Search functionality    |
+| 12    | Obstacle management     |
 
 ---
 
-_Document created: December 22, 2025_ _Last updated: December 26, 2025_
+_Document created: December 22, 2025_ _Last updated: December 30, 2025_
