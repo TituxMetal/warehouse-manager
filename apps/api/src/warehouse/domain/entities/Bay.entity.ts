@@ -3,6 +3,7 @@ export class BayEntity {
     public readonly id: number,
     public readonly number: number,
     public readonly width: number,
+    public readonly startPosition: number,
     public readonly aisleId: number,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
@@ -14,28 +15,26 @@ export class BayEntity {
    * @param isOdd - Whether the parent aisle is odd (from AisleEntity.isOdd)
    * @returns Array of position numbers
    *
-   * IMPORTANT ASSUMPTION: This formula assumes ALL bays have width=4.
-   * The `bayIndex * 4` calculation only works with uniform bay widths.
-   * If bays could have different widths, we would need to store startPosition
-   * on the Bay model or calculate it from all previous bays' widths.
+   * Position calculation:
+   * - `startPosition` is the base index (0, 3, 7, 11, ...)
+   * - Odd positions: basePosition * 2 + 1 → 1, 3, 5, 7...
+   * - Even positions: (basePosition + 1) * 2 → 2, 4, 6, 8...
    *
-   * Example: Bay 1 (number=1), width=4, isOdd=true → [1, 3, 5, 7]
-   * Example: Bay 1 (number=1), width=4, isOdd=false → [2, 4, 6, 8]
-   * Example: Bay 2 (number=2), width=4, isOdd=true → [9, 11, 13, 15]
+   * Example with variable widths:
+   * - Bay 1: startPosition=0, width=4 → base positions 0,1,2,3
+   * - Bay 2: startPosition=4, width=3 → base positions 4,5,6
+   * - Bay 3: startPosition=7, width=4 → base positions 7,8,9,10
    */
   getPositions(isOdd: boolean): number[] {
-    const bayIndex = this.number - 1
+    const positions: number[] = []
 
-    // NOTE: The "4" here assumes all bays have 4 positions.
-    // If this changes, this formula will break!
-    return Array.from({ length: this.width }, (_, positionIndex) => {
-      const basePosition = bayIndex * 4 + positionIndex
+    Array.from({ length: this.width }, (_, index) => {
+      const basePosition = this.startPosition + index
+      const position = isOdd ? basePosition * 2 + 1 : (basePosition + 1) * 2
 
-      if (isOdd) {
-        return basePosition * 2 + 1
-      }
-
-      return (basePosition + 1) * 2
+      positions.push(position)
     })
+
+    return positions
   }
 }
