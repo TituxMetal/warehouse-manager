@@ -148,6 +148,52 @@ Domain Services:
 In NestJS, these will be instantiated in the module and injected where needed. But the classes
 themselves have no NestJS dependencies.
 
+## IMPORTANT: Bay Schema Decision (2026-01-01)
+
+### Reference Documents
+
+Please first reference to the following reference documents:
+
+- [CELL_STRUCTURE.md](./CELL_STRUCTURE.md)
+- [BAY_CONCEPT.md](./BAY_CONCEPT.md)
+
+### The Problem
+
+The `calculateBayCount` method originally had a `positionsPerBay` parameter (default 4). But:
+
+1. **Schema inconsistency:** Bay model has `width: Int` but `getPositions()` hardcodes
+   `bayIndex * 4`
+2. **Physical reality:** Bays can have 3 OR 4 positions depending on beam length
+3. **Current assumption:** All code assumes width=4, which will break if width varies
+
+### Decision: Option B — Add `startPosition` to Bay Schema
+
+**Why NOW instead of later:**
+
+- Currently: Only domain layer exists (no infrastructure, no frontend, no data)
+- Later: Would require changes to repositories, controllers, DTOs, frontend, data migration
+- Cost of change increases exponentially over time
+
+**Changes Required:**
+
+1. **Schema:** Add `startPosition Int` to Bay model
+2. **Bay entity:** Fix `getPositions()` to use `this.width` and `this.startPosition`
+3. **CellStructureCalculator:** Remove `positionsPerBay` parameter OR keep for initial calculation
+
+**Physical Constraints:**
+
+- Minimum positions per bay = 3 (physical beam constraint)
+- Maximum positions per bay = 4 (typical)
+- A bay CANNOT have 1 or 2 positions
+
+### Implementation Notes for `calculateBayCount`
+
+After schema change, this method may need rethinking:
+
+- If all bays in an aisle have same width → simple division
+- If bays can have different widths → method signature may change
+- Consider: Is this method even needed, or does use case handle it?
+
 ## Verification
 
 - [ ] All domain services have unit tests

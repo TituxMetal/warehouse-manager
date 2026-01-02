@@ -110,9 +110,10 @@ model Aisle {
 }
 
 model Bay {
-  id     Int @id @default(autoincrement())
-  number Int
-  width  Int
+  id            Int @id @default(autoincrement())
+  number        Int
+  width         Int
+  startPosition Int
 
   aisle     Aisle      @relation(fields: [aisleId], references: [id], onDelete: Cascade)
   aisleId   Int
