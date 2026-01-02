@@ -174,6 +174,46 @@ describe('CellStructureCalculator', () => {
         totalBays: 2
       })
     })
+
+    it('should throw InvalidPositionCountException for less than 3 positions', () => {
+      const calculator = new CellStructureCalculator()
+
+      expect(() => calculator.calculateBayDistribution(0)).toThrow(InvalidPositionCountException)
+      expect(() => calculator.calculateBayDistribution(1)).toThrow(InvalidPositionCountException)
+      expect(() => calculator.calculateBayDistribution(2)).toThrow(InvalidPositionCountException)
+    })
+
+    it('should throw InvalidPositionCountException for 5 positions (edge case)', () => {
+      const calculator = new CellStructureCalculator()
+
+      // 5 = 1×4 + remainder 1, but remainder 1 requires maxFours >= 2
+      expect(() => calculator.calculateBayDistribution(5)).toThrow(InvalidPositionCountException)
+    })
+
+    it('should handle minimum valid counts (3, 4, 6)', () => {
+      const calculator = new CellStructureCalculator()
+
+      // 3 = 1×3
+      expect(calculator.calculateBayDistribution(3)).toEqual({
+        width3Count: 1,
+        width4Count: 0,
+        totalBays: 1
+      })
+
+      // 4 = 1×4
+      expect(calculator.calculateBayDistribution(4)).toEqual({
+        width3Count: 0,
+        width4Count: 1,
+        totalBays: 1
+      })
+
+      // 6 = 2×3
+      expect(calculator.calculateBayDistribution(6)).toEqual({
+        width3Count: 2,
+        width4Count: 0,
+        totalBays: 2
+      })
+    })
   })
 
   describe('generateLevels', () => {
