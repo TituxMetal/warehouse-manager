@@ -28,12 +28,12 @@ export class BayEntity {
   getPositions(isOdd: boolean): number[] {
     const positions: number[] = []
 
-    Array.from({ length: this.width }, (_, index) => {
+    for (let index = 0; index < this.width; index++) {
       const basePosition = this.startPosition + index
       const position = isOdd ? basePosition * 2 + 1 : (basePosition + 1) * 2
 
       positions.push(position)
-    })
+    }
 
     return positions
   }
