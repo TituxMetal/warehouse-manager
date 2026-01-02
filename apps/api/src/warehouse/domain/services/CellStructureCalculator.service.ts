@@ -98,7 +98,7 @@ export class CellStructureCalculator {
    * - Even positions: 2, 4, 6, 8... (start at 2, step by 2)
    * - Total positions split between odd and even
    *
-   * @throws Error if locationsPerAisle < 3 (minimum one bay)
+   * @throws InvalidPositionCountException if locationsPerAisle < 3 (minimum one bay)
    *
    * @example
    * calculatePositionRanges(10)
@@ -188,6 +188,10 @@ export class CellStructureCalculator {
    * calculateBayDistribution(103) // → { width3Count: 1, width4Count: 25, totalBays: 26 }
    */
   calculateBayDistribution(totalPositions: number): BayDistribution {
+    if (totalPositions < 3) {
+      throw new InvalidPositionCountException(totalPositions)
+    }
+
     const maxFours = Math.floor(totalPositions / 4)
     const remainder = totalPositions % 4
 
@@ -202,6 +206,7 @@ export class CellStructureCalculator {
       case 1:
         // 4k + 1: Replace two 4-bays with three 3-bays
         // Example: 101 = 23×4 + 3×3 = 92 + 9
+        // Note: Requires maxFours >= 2, so totalPositions >= 9
         width3Count = 3
         width4Count = maxFours - 2
         break
@@ -219,6 +224,11 @@ export class CellStructureCalculator {
         break
       default:
         throw new Error('Unexpected remainder')
+    }
+
+    // Edge case: totalPositions=5 produces negative width4Count
+    if (width4Count < 0) {
+      throw new InvalidPositionCountException(totalPositions, 6)
     }
 
     return {
