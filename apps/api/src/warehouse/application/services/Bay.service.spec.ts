@@ -54,6 +54,7 @@ describe('BayService', () => {
         id,
         number: 1,
         width: 100,
+        startPosition: 0,
         aisleId: 1,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -71,7 +72,15 @@ describe('BayService', () => {
     it('should delegate to getBaysByAisleIdUseCase with correct aisleId', async () => {
       const aisleId = 1
       const expectedResult: BayResponseDto[] = [
-        { id: 1, number: 1, width: 100, aisleId, createdAt: new Date(), updatedAt: new Date() }
+        {
+          id: 1,
+          number: 1,
+          width: 100,
+          startPosition: 0,
+          aisleId,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
       ]
       mockGetBaysByAisleIdUseCase.execute.mockResolvedValue(expectedResult)
 
@@ -89,6 +98,7 @@ describe('BayService', () => {
         id,
         number: 1,
         width: 100,
+        startPosition: 0,
         aisleId: 1,
         locations: [],
         createdAt: new Date(),
