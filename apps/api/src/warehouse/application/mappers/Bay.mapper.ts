@@ -8,6 +8,7 @@ export class BayMapper {
       id: entity.id,
       number: entity.number,
       width: entity.width,
+      startPosition: entity.startPosition,
       aisleId: entity.aisleId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt

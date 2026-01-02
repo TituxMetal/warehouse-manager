@@ -13,6 +13,7 @@ const createTestBayEntity = (overrides?: Partial<BayEntity>) =>
       overrides?.id ?? 1,
       overrides?.number ?? 1,
       overrides?.width ?? 4,
+      overrides?.startPosition ?? 0,
       overrides?.aisleId ?? 1,
       overrides?.createdAt ?? new Date('2025-01-01'),
       overrides?.updatedAt ?? new Date('2025-01-02')
@@ -78,6 +79,7 @@ describe('GetBayWithLocationsUseCase', () => {
       expect(result).toHaveProperty('id', bay.id)
       expect(result).toHaveProperty('number', bay.number)
       expect(result).toHaveProperty('width', bay.width)
+      expect(result).toHaveProperty('startPosition', bay.startPosition)
       expect(result).toHaveProperty('aisleId', bay.aisleId)
       expect(result).toHaveProperty('locations')
       expect(result.locations).toHaveLength(2)
@@ -96,6 +98,7 @@ describe('GetBayWithLocationsUseCase', () => {
       expect(result).toHaveProperty('id', bay.id)
       expect(result).toHaveProperty('number', bay.number)
       expect(result).toHaveProperty('width', bay.width)
+      expect(result).toHaveProperty('startPosition', bay.startPosition)
       expect(result).toHaveProperty('locations')
       expect(result.locations).toHaveLength(0)
     })

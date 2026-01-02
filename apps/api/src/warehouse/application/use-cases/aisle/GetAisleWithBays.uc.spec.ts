@@ -26,6 +26,7 @@ const createTestBayEntity = (overrides: Partial<BayEntity>) =>
       overrides.id ?? 1,
       overrides.number ?? 1,
       overrides.width ?? 4,
+      overrides.startPosition ?? 0,
       overrides.aisleId ?? 1,
       overrides.createdAt ?? new Date('2026-01-01'),
       overrides.updatedAt ?? new Date('2026-01-02')
