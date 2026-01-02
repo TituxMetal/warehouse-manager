@@ -298,8 +298,8 @@ Accent Odd:  Blue (sky)
 - [x] **Phase 1:** Schema Migration
 - [x] **Phase 2:** Domain Layer (entities, VOs, repo interfaces)
 - [x] **Phase 3:** Simple Application Layer (DTOs, mappers, simple use cases)
-- [ ] **Phase 4:** Domain Services ← **NEXT** (CellStructureCalculator, LocationAddressParser)
-- [ ] **Phase 5:** Complex Use Cases (CreateCell, GetLocationByAddress)
+- [x] **Phase 4:** Domain Services (CellStructureCalculator, LocationAddressParser)
+- [ ] **Phase 5:** Complex Use Cases ← **NEXT** (CreateCell, GetLocationByAddress)
 - [ ] **Phase 6:** Infrastructure Layer (Prisma repos, controllers, endpoints)
 - [ ] **Phase 7:** Frontend Integration
 - [ ] **Phase 8:** Seed Data & Polish
@@ -315,4 +315,4 @@ Accent Odd:  Blue (sky)
 
 ---
 
-_Document created: December 22, 2025_ _Last updated: December 30, 2025_
+_Document created: December 22, 2025_ _Last updated: January 2, 2026_

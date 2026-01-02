@@ -368,121 +368,67 @@ apps/api/src/warehouse/domain/services/
 
 ### 6.2 CellStructureCalculator Implementation
 
-Based on reference: `/reference/astro-warehouse-visualizer/src/utils/implementation.ts`
+**Status:** ✅ Implemented
+
+See: `apps/api/src/warehouse/domain/services/CellStructureCalculator.service.ts`
 
 ```typescript
-// Types
-interface AisleConfig {
-  number: number
-  locationType: 'odd' | 'even' | 'both'
-}
-
-interface PositionRange {
-  start: number
-  end: number
-  count: number
-}
-
-// Implementation
 export class CellStructureCalculator {
+  // Generate aisle configs with odd/even/both sides
   generateAisleConfiguration(
     aisleStart: number,
     aisleEnd: number,
-    startLocationType: 'odd' | 'even' | 'both',
-    endLocationType: 'odd' | 'even' | 'both'
-  ): AisleConfig[] {
-    const aisles: AisleConfig[] = []
+    startLocationType: LocationType,
+    endLocationType: LocationType
+  ): AisleConfig[]
 
-    // First aisle
-    aisles.push({ number: aisleStart, locationType: startLocationType })
+  // Calculate position ranges for odd/even sides
+  calculatePositionRanges(locationsPerAisle: number): PositionRanges
 
-    // Middle aisles (always 'both')
-    for (let i = aisleStart + 1; i < aisleEnd; i++) {
-      aisles.push({ number: i, locationType: 'both' })
-    }
+  // Generate level numbers (0, 10, 20...)
+  generateLevels(levelCount: number, existingLevelCount?: number): number[]
 
-    // Last aisle (if different from first)
-    if (aisleStart !== aisleEnd) {
-      aisles.push({ number: aisleEnd, locationType: endLocationType })
-    }
+  // Calculate optimal 3-width vs 4-width bay distribution
+  calculateBayDistribution(totalPositions: number): BayDistribution
 
-    return aisles
-  }
-
-  calculatePositionRanges(locationsPerAisle: number): {
-    odd: PositionRange
-    even: PositionRange
-  } {
-    return {
-      odd: {
-        start: 1,
-        end: locationsPerAisle - 1,
-        count: Math.ceil(locationsPerAisle / 2)
-      },
-      even: {
-        start: 2,
-        end: locationsPerAisle,
-        count: Math.floor(locationsPerAisle / 2)
-      }
-    }
-  }
-
-  generateLevels(levelCount: number): number[] {
-    return [0, ...Array.from({ length: levelCount - 1 }, (_, i) => (i + 1) * 10)]
-  }
-
-  calculateBayCount(locationsPerSide: number, positionsPerBay: number = 4): number {
-    return Math.ceil(locationsPerSide / positionsPerBay)
-  }
+  // Generate bay specs with startPosition for each bay
+  generateBayStartPositions(distribution: BayDistribution): BaySpec[]
 }
 ```
 
+**Key design decision:** Bay schema now includes `startPosition` to support variable-width bays (3
+or 4 positions). See `docs/BAY_CONCEPT.md` and `docs/CELL_STRUCTURE_CALCULATION.md`.
+
 ### 6.3 LocationAddressParser Implementation
+
+**Status:** ✅ Implemented
+
+See: `apps/api/src/warehouse/domain/services/LocationAddressParser.service.ts`
 
 ```typescript
 export class LocationAddressParser {
-  private static readonly ADDRESS_REGEX = /^(\d)-(\d{3})-(\d{4})-(\d{2})$/
+  // Parse "4-016-0026-30" into value objects
+  parse(address: string): ParsedAddress
 
-  parse(address: string): {
-    cell: CellValueObject
-    aisle: AisleValueObject
-    position: PositionValueObject
-    level: LevelValueObject
-  } {
-    const match = address.match(LocationAddressParser.ADDRESS_REGEX)
-    if (!match) {
-      throw new InvalidAddressException(address)
-    }
-
-    return {
-      cell: new CellValueObject(parseInt(match[1], 10)),
-      aisle: new AisleValueObject(parseInt(match[2], 10)),
-      position: new PositionValueObject(parseInt(match[3], 10)),
-      level: new LevelValueObject(parseInt(match[4], 10))
-    }
-  }
-
+  // Format value objects into "4-016-0026-30"
   format(
     cell: CellValueObject,
     aisle: AisleValueObject,
     position: PositionValueObject,
     level: LevelValueObject
-  ): string {
-    return `${cell.toString()}-${aisle.toString()}-${position.toString()}-${level.toString()}`
-  }
+  ): string
 
-  isValid(address: string): boolean {
-    return LocationAddressParser.ADDRESS_REGEX.test(address)
-  }
+  // Validate address format with round-trip check
+  isValid(address: string): boolean
 }
 ```
 
 ### 6.4 Verification
 
-- [ ] All domain services have unit tests
-- [ ] No dependencies on application or infrastructure layers
-- [ ] `bun run --cwd apps/api test` passes
-- [ ] `bun run typecheck` passes
+- [x] All domain services have unit tests
+- [x] No dependencies on application or infrastructure layers
+- [x] `bun run --cwd apps/api test` passes
+- [x] `bun run typecheck` passes
 
 ---
 
@@ -788,4 +734,4 @@ apps/web/src/pages/
 
 ---
 
-_Document created: December 27, 2025_
+_Document created: December 27, 2025_ _Last updated: January 2, 2026_
