@@ -24,7 +24,7 @@ jobs:
 
     container:
       # Use official Bun image based on Debian
-      image: oven/bun:1.3.3-debian
+      image: oven/bun:1.3.5-debian
 
     steps:
       - name: Checkout Repository
