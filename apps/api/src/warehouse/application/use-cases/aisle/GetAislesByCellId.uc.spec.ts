@@ -28,6 +28,7 @@ describe('GetAislesByCellIdUseCase', () => {
     findWithBays: Mock<IAisleRepository['findWithBays']>
     findWithLocations: Mock<IAisleRepository['findWithLocations']>
     create: Mock<IAisleRepository['create']>
+    createMany: Mock<IAisleRepository['createMany']>
     update: Mock<IAisleRepository['update']>
     delete: Mock<IAisleRepository['delete']>
   }
@@ -39,6 +40,7 @@ describe('GetAislesByCellIdUseCase', () => {
       findWithBays: mock(() => {}) as unknown as Mock<IAisleRepository['findWithBays']>,
       findWithLocations: mock(() => {}) as unknown as Mock<IAisleRepository['findWithLocations']>,
       create: mock(() => {}) as unknown as Mock<IAisleRepository['create']>,
+      createMany: mock(() => {}) as unknown as Mock<IAisleRepository['createMany']>,
       update: mock(() => {}) as unknown as Mock<IAisleRepository['update']>,
       delete: mock(() => {}) as unknown as Mock<IAisleRepository['delete']>
     }

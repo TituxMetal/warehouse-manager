@@ -16,6 +16,7 @@ export interface IAisleRepository {
   findWithBays(id: number): Promise<AisleWithBays | null>
   findWithLocations(id: number): Promise<AisleWithLocations | null>
   create(aisle: AisleEntity): Promise<AisleEntity>
+  createMany(aisles: AisleEntity[]): Promise<AisleEntity[]>
   update(aisle: AisleEntity): Promise<AisleEntity>
   delete(id: number): Promise<void>
 }
