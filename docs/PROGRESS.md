@@ -8,11 +8,11 @@
 
 ### Phase 1: Domain Layer Updates (Block 1)
 
-- [ ] Create `CellAlreadyExistsException` domain exception
-- [ ] Add `createMany` to `IAisleRepository`
-- [ ] Add `createMany` to `IBayRepository`
-- [ ] Add `createMany` to `ILocationRepository`
-- [ ] Update existing test mocks for Aisle/Bay/Location use cases
+- [x] Create `CellAlreadyExistsException` domain exception
+- [x] Add `createMany` to `IAisleRepository`
+- [x] Add `createMany` to `IBayRepository`
+- [x] Add `createMany` to `ILocationRepository`
+- [x] Update existing test mocks for Aisle/Bay/Location use cases
 
 ### Phase 2: Application Layer — CreateCell (Block 2)
 
