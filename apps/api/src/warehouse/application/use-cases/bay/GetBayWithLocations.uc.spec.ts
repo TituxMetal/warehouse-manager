@@ -49,6 +49,7 @@ describe('GetBayWithLocationsUseCase', () => {
     findByAisleId: Mock<IBayRepository['findByAisleId']>
     findWithLocations: Mock<IBayRepository['findWithLocations']>
     create: Mock<IBayRepository['create']>
+    createMany: Mock<IBayRepository['createMany']>
     update: Mock<IBayRepository['update']>
     delete: Mock<IBayRepository['delete']>
   }
@@ -59,6 +60,7 @@ describe('GetBayWithLocationsUseCase', () => {
       findByAisleId: mock(() => {}) as unknown as Mock<IBayRepository['findByAisleId']>,
       findWithLocations: mock(() => {}) as unknown as Mock<IBayRepository['findWithLocations']>,
       create: mock(() => {}) as unknown as Mock<IBayRepository['create']>,
+      createMany: mock(() => {}) as unknown as Mock<IBayRepository['createMany']>,
       update: mock(() => {}) as unknown as Mock<IBayRepository['update']>,
       delete: mock(() => {}) as unknown as Mock<IBayRepository['delete']>
     }

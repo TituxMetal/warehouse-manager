@@ -8,6 +8,7 @@ export interface ILocationRepository {
   findAvailableLocations(): Promise<LocationEntity[]>
   findBlockedLocations(): Promise<LocationEntity[]>
   create(location: LocationEntity): Promise<LocationEntity>
+  createMany(locations: LocationEntity[]): Promise<LocationEntity[]>
   update(location: LocationEntity): Promise<LocationEntity>
   delete(id: number): Promise<void>
 }

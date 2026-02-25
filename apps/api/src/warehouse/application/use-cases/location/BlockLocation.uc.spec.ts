@@ -55,6 +55,7 @@ describe('BlockLocationUseCase', () => {
     findAvailableLocations: Mock<ILocationRepository['findAvailableLocations']>
     findBlockedLocations: Mock<ILocationRepository['findBlockedLocations']>
     create: Mock<ILocationRepository['create']>
+    createMany: Mock<ILocationRepository['createMany']>
     update: Mock<ILocationRepository['update']>
     delete: Mock<ILocationRepository['delete']>
   }
@@ -84,6 +85,7 @@ describe('BlockLocationUseCase', () => {
         ILocationRepository['findBlockedLocations']
       >,
       create: mock(() => {}) as unknown as Mock<ILocationRepository['create']>,
+      createMany: mock(() => {}) as unknown as Mock<ILocationRepository['createMany']>,
       update: mock(() => {}) as unknown as Mock<ILocationRepository['update']>,
       delete: mock(() => {}) as unknown as Mock<ILocationRepository['delete']>
     }

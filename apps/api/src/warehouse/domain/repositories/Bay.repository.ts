@@ -10,6 +10,7 @@ export interface IBayRepository {
   findByAisleId(aisleId: number): Promise<BayEntity[]>
   findWithLocations(id: number): Promise<BayWithLocations | null>
   create(bay: BayEntity): Promise<BayEntity>
+  createMany(bays: BayEntity[]): Promise<BayEntity[]>
   update(bay: BayEntity): Promise<BayEntity>
   delete(id: number): Promise<void>
 }
