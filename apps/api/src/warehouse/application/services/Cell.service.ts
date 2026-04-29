@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common'
 
-import type { CellResponseDto } from '~/warehouse/application/dtos'
+import type { CellResponseDto, CreateCellDto } from '~/warehouse/application/dtos'
 import type {
   CellStatisticsDto,
   CellWithAislesResponseDto
 } from '~/warehouse/application/use-cases/cell'
 import {
+  CreateCellUseCase,
   DeleteCellUseCase,
   GetAllCellsUseCase,
   GetCellByIdUseCase,
@@ -17,6 +18,7 @@ import {
 @Injectable()
 export class CellService {
   constructor(
+    private readonly createCellUseCase: CreateCellUseCase,
     private readonly getAllCellsUseCase: GetAllCellsUseCase,
     private readonly getCellByIdUseCase: GetCellByIdUseCase,
     private readonly getCellByNumberUseCase: GetCellByNumberUseCase,
@@ -24,6 +26,10 @@ export class CellService {
     private readonly getCellStatisticsUseCase: GetCellStatisticsUseCase,
     private readonly deleteCellUseCase: DeleteCellUseCase
   ) {}
+
+  async create(dto: CreateCellDto): Promise<CellResponseDto> {
+    return this.createCellUseCase.execute(dto)
+  }
 
   async getAll(): Promise<CellResponseDto[]> {
     return this.getAllCellsUseCase.execute()
