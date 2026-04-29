@@ -1,3 +1,4 @@
+export { CreateCellUseCase } from './CreateCell.uc'
 export { DeleteCellUseCase } from './DeleteCell.uc'
 export { GetAllCellsUseCase } from './GetAllCells.uc'
 export { GetCellByIdUseCase } from './GetCellById.uc'
