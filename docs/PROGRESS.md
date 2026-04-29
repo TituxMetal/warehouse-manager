@@ -16,10 +16,10 @@
 
 ### Phase 2: Application Layer — CreateCell (Block 2)
 
-- [ ] Create `CreateCellDto` with class-validator decorators
-- [ ] Create `CreateCellUseCase` with orchestration logic
-- [ ] Update `CellService` facade (add create method)
-- [ ] Write tests for `CreateCellUseCase`
+- [x] Create `CreateCellDto` with class-validator decorators
+- [x] Create `CreateCellUseCase` with orchestration logic
+- [x] Update `CellService` facade (add create method)
+- [x] Write tests for `CreateCellUseCase`
 
 ### Phase 3: Infrastructure — Mappers (Block 3)
 
@@ -35,6 +35,8 @@
 - [ ] Implement `PrismaBayRepository` (with createMany)
 - [ ] Implement `PrismaLocationRepository` (with batched createMany)
 - [ ] Write repository tests
+- [ ] Wrap `CreateCellUseCase` orchestration in a Prisma `$transaction` to prevent orphan
+      Cell/Aisles/Bays on partial-persistence failures (see `TODO(infra)` in `CreateCell.uc.ts`)
 
 ### Phase 5: Infrastructure — Controller (Block 4)
 

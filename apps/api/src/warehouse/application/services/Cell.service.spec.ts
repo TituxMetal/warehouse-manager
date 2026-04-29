@@ -2,12 +2,13 @@ import { Test } from '@nestjs/testing'
 import type { Mock } from 'bun:test'
 import { beforeEach, describe, expect, it, mock } from 'bun:test'
 
-import type { CellResponseDto } from '~/warehouse/application/dtos'
+import type { CellResponseDto, CreateCellDto } from '~/warehouse/application/dtos'
 import type {
   CellStatisticsDto,
   CellWithAislesResponseDto
 } from '~/warehouse/application/use-cases/cell'
 import {
+  CreateCellUseCase,
   DeleteCellUseCase,
   GetAllCellsUseCase,
   GetCellByIdUseCase,
@@ -20,6 +21,7 @@ import { CellService } from './Cell.service'
 
 describe('CellService', () => {
   let service: CellService
+  let mockCreateCellUseCase: { execute: Mock<typeof CreateCellUseCase.prototype.execute> }
   let mockGetAllCellsUseCase: { execute: Mock<typeof GetAllCellsUseCase.prototype.execute> }
   let mockGetCellByIdUseCase: { execute: Mock<typeof GetCellByIdUseCase.prototype.execute> }
   let mockGetCellByNumberUseCase: { execute: Mock<typeof GetCellByNumberUseCase.prototype.execute> }
@@ -32,6 +34,9 @@ describe('CellService', () => {
   let mockDeleteCellUseCase: { execute: Mock<typeof DeleteCellUseCase.prototype.execute> }
 
   beforeEach(async () => {
+    mockCreateCellUseCase = {
+      execute: mock(() => {}) as unknown as Mock<typeof CreateCellUseCase.prototype.execute>
+    }
     mockGetAllCellsUseCase = {
       execute: mock(() => {}) as unknown as Mock<typeof GetAllCellsUseCase.prototype.execute>
     }
@@ -54,6 +59,7 @@ describe('CellService', () => {
     const module = await Test.createTestingModule({
       providers: [
         CellService,
+        { provide: CreateCellUseCase, useValue: mockCreateCellUseCase },
         { provide: GetAllCellsUseCase, useValue: mockGetAllCellsUseCase },
         { provide: GetCellByIdUseCase, useValue: mockGetCellByIdUseCase },
         { provide: GetCellByNumberUseCase, useValue: mockGetCellByNumberUseCase },
@@ -64,6 +70,37 @@ describe('CellService', () => {
     }).compile()
 
     service = module.get<CellService>(CellService)
+  })
+
+  describe('create', () => {
+    it('should delegate to createCellUseCase with correct dto', async () => {
+      const dto: CreateCellDto = {
+        cellNumber: 1,
+        aisleStart: 1,
+        aisleEnd: 4,
+        startLocationType: 'both',
+        endLocationType: 'odd',
+        locationsPerAisle: 6,
+        levelCount: 2,
+        hasPicking: true
+      }
+      const expectedResult: CellResponseDto = {
+        id: 1,
+        number: 1,
+        aislesCount: 7,
+        locationsPerAisle: 3,
+        levelsPerLocation: 2,
+        totalLocations: 42,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      mockCreateCellUseCase.execute.mockResolvedValue(expectedResult)
+
+      const result = await service.create(dto)
+
+      expect(mockCreateCellUseCase.execute).toHaveBeenCalledWith(dto)
+      expect(result).toBe(expectedResult)
+    })
   })
 
   describe('getAll', () => {
