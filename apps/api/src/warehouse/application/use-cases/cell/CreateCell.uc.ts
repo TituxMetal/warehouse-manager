@@ -4,7 +4,8 @@ import type { CellResponseDto, CreateCellDto } from '~/warehouse/application/dto
 import { AisleEntity, BayEntity, CellEntity, LocationEntity } from '~/warehouse/domain/entities'
 import {
   CellAlreadyExistsException,
-  InvalidAisleRangeException
+  InvalidAisleRangeException,
+  InvalidLocationsPerAisleException
 } from '~/warehouse/domain/exceptions'
 import type {
   IAisleRepository,
@@ -32,11 +33,11 @@ export class CreateCellUseCase {
   ) {}
 
   async execute(dto: CreateCellDto): Promise<CellResponseDto> {
-    const isUniqueCellNumber = await this.cellRepository.findByNumber(
+    const existingCell = await this.cellRepository.findByNumber(
       new CellValueObject(dto.cellNumber!)
     )
 
-    if (isUniqueCellNumber) {
+    if (existingCell) {
       throw new CellAlreadyExistsException(dto.cellNumber!)
     }
 
@@ -51,8 +52,25 @@ export class CreateCellUseCase {
       dto.startLocationType! as LocationType,
       dto.endLocationType! as LocationType
     )
-    const positionRanges = calculator.calculatePositionRanges(dto.locationsPerAisle!)
-    const bayDistribution = calculator.calculateBayDistribution(positionRanges.odd.count)
+    const locationsPerAisleRule = calculator.evaluateLocationsPerAisleRule(
+      dto.locationsPerAisle!,
+      aisleConfig
+    )
+
+    if (locationsPerAisleRule) {
+      throw new InvalidLocationsPerAisleException(dto.locationsPerAisle!, locationsPerAisleRule)
+    }
+
+    // The number of positions on the side each aisle actually has (decisions 002/004):
+    // half the entered total for a two-sided cell, the full total for a one-sided one.
+    // Under decision 005 this is also the value stored on `CellEntity.locationsPerAisle`:
+    // the field holds the per-side count, and `getTotalLocations()` multiplies it by the
+    // number of aisle records (one per side) to recover the `Location` row count.
+    const positionsPerSide = calculator.calculatePositionsPerSide(
+      dto.locationsPerAisle!,
+      aisleConfig
+    )
+    const bayDistribution = calculator.calculateBayDistribution(positionsPerSide)
     const baySpecs = calculator.generateBayStartPositions(bayDistribution)
     const allLevels = calculator.generateLevels(dto.levelCount!)
     const locationLevels = dto.hasPicking ? allLevels : allLevels.filter(level => level !== 0)
@@ -66,28 +84,28 @@ export class CreateCellUseCase {
 
       return [{ number: config.number, isOdd: config.locationType === 'odd' }]
     })
-    const locationsPerAisle = positionRanges.odd.count
     const levelsPerLocation = locationLevels.length
+
+    // One timestamp for the whole orchestration, so every record of a cell shares it.
+    const now = new Date()
+    // Decision 005: `CellEntity.locationsPerAisle` stores the number of positions on ONE
+    // SIDE of an aisle — the same quantity the bay specification is built from above.
+    // `aislesCount` counts aisle records (one per side), so
+    // `getTotalLocations()` = records × per-side × levels equals the number of `Location`
+    // rows created. The entered `dto.locationsPerAisle` is a total and is NOT stored.
     const cellToCreate = new CellEntity(
       0,
       new CellValueObject(dto.cellNumber!),
       aisleSpecs.length,
-      locationsPerAisle,
+      positionsPerSide,
       levelsPerLocation,
-      new Date(),
-      new Date()
+      now,
+      now
     )
     const createdCell = await this.cellRepository.create(cellToCreate)
     const aislesToCreate = aisleSpecs.map(
       spec =>
-        new AisleEntity(
-          0,
-          new AisleValueObject(spec.number),
-          spec.isOdd,
-          createdCell.id,
-          new Date(),
-          new Date()
-        )
+        new AisleEntity(0, new AisleValueObject(spec.number), spec.isOdd, createdCell.id, now, now)
     )
     const createdAisles = await this.aisleRepository.createMany(aislesToCreate)
     const baysToCreate: BayEntity[] = []
@@ -95,15 +113,7 @@ export class CreateCellUseCase {
     for (const aisle of createdAisles) {
       for (const [bayIndex, baySpec] of baySpecs.entries()) {
         baysToCreate.push(
-          new BayEntity(
-            0,
-            bayIndex + 1,
-            baySpec.width,
-            baySpec.startPosition,
-            aisle.id,
-            new Date(),
-            new Date()
-          )
+          new BayEntity(0, bayIndex + 1, baySpec.width, baySpec.startPosition, aisle.id, now, now)
         )
       }
     }
@@ -132,8 +142,8 @@ export class CreateCellUseCase {
               bay.aisleId,
               bay.id,
               null,
-              new Date(),
-              new Date()
+              now,
+              now
             )
           )
         }

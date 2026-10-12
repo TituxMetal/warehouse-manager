@@ -90,6 +90,88 @@ export class CellStructureCalculator {
   }
 
   /**
+   * Evaluates whether `locationsPerAisle` can describe a physically buildable aisle.
+   *
+   * Returns `null` when the value is legal, otherwise a human-readable reason that
+   * states the physical constraint (not merely the bound).
+   *
+   * The rule is stated per side (decision 004): a bay is 3 or 4 positions wide, so a
+   * side must be a sum of 3s and 4s — at least 3 and never exactly 5 (3×4 − 3 − 4 = 5).
+   * `locationsPerAisle` is a total, and the total is split across the sides an aisle
+   * actually has:
+   *
+   * - Two-sided aisle (`both`): both sides are equal length (decision 002), so the total
+   *   must be even, its half must be bay-decomposable, i.e. total ≥ 6 and total ≠ 10.
+   * - One-sided aisle (`odd`/`even`): the single side *is* the whole aisle, so the total
+   *   is the side length and must be ≥ 3 and ≠ 5. Parity is irrelevant.
+   *
+   * "One-sided" is derived from the configurations the calculator actually produces
+   * (`generateAisleConfiguration`), not from a parallel interpretation of the DTO: a
+   * cell is two-sided when at least one of its aisle numbers is `both`. Middle aisles
+   * are always `both`, so any multi-aisle cell is two-sided.
+   *
+   * This is a standalone rule evaluator — `calculatePositionRanges` stays a neutral
+   * splitter (decision 003) and is not given a new exception.
+   */
+  evaluateLocationsPerAisleRule(
+    locationsPerAisle: number,
+    aisleConfig: AisleConfig[]
+  ): string | null {
+    if (!Number.isInteger(locationsPerAisle)) {
+      return 'locationsPerAisle must be an integer'
+    }
+
+    const hasTwoSidedAisle = aisleConfig.some(config => config.locationType === 'both')
+
+    if (hasTwoSidedAisle) {
+      if (locationsPerAisle % 2 !== 0) {
+        return `${locationsPerAisle} is odd, and both sides of a two-sided aisle must have the same number of positions`
+      }
+
+      const positionsPerSide = locationsPerAisle / 2
+
+      if (positionsPerSide < 3) {
+        return `a two-sided aisle with ${locationsPerAisle} positions gives ${positionsPerSide} positions per side, and a side needs at least 3 positions (one bay)`
+      }
+
+      if (positionsPerSide === 5) {
+        return `a two-sided aisle with ${locationsPerAisle} positions gives 5 positions per side, and 5 is not a sum of 3- and 4-position bays`
+      }
+
+      return null
+    }
+
+    if (locationsPerAisle < 3) {
+      return `a side needs at least 3 positions (one bay), and a one-sided aisle has ${locationsPerAisle}`
+    }
+
+    if (locationsPerAisle === 5) {
+      return '5 is not a sum of 3- and 4-position bays'
+    }
+
+    return null
+  }
+
+  /**
+   * Returns the number of positions on one side of an aisle, derived from the aisle
+   * configuration that is actually being created.
+   *
+   * - Two-sided aisle (any `both` in the configuration): the total is split equally
+   *   between the two sides (decision 002), so a side has `locationsPerAisle / 2`.
+   * - One-sided aisle: the single side is the whole aisle, so it has the full total.
+   *
+   * This is the quantity `calculateBayDistribution` consumes, and under decision 005 it
+   * is also the value stored in `CellEntity.locationsPerAisle`. `getTotalLocations()`
+   * multiplies it by the number of aisle records (one per side), so the reported total
+   * equals the number of `Location` rows created.
+   */
+  calculatePositionsPerSide(locationsPerAisle: number, aisleConfig: AisleConfig[]): number {
+    const hasTwoSidedAisle = aisleConfig.some(config => config.locationType === 'both')
+
+    return hasTwoSidedAisle ? locationsPerAisle / 2 : locationsPerAisle
+  }
+
+  /**
    * Calculates position ranges for odd and even sides of an aisle.
    *
    * Business rules:
