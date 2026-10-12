@@ -13,9 +13,9 @@
     "start": "astro preview",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
-    "test": "bun test",
-    "test:coverage": "bun test --coverage",
-    "test:watch": "bun test --watch",
+    "test": "bun test --isolate",
+    "test:coverage": "bun test --isolate --coverage",
+    "test:watch": "bun test --isolate --watch",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf node_modules coverage dist .astro .turbo"
   },
