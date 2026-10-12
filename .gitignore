@@ -26,3 +26,6 @@ dist
 # coverage
 coverage
 .husky/_
+
+# internal tooling (pi / principal workflow)
+.pi/
