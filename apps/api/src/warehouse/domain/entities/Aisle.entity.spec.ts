@@ -26,32 +26,35 @@ describe('AisleEntity', () => {
   })
 
   describe('getPositionRange', () => {
-    it('should return correct range for odd aisle with 10 locations', () => {
+    it('should return correct range for an odd side of 10 positions', () => {
       const aisle = createAisle({ isOdd: true })
 
       expect(aisle.getPositionRange(10)).toEqual({
         start: 1,
-        end: 9,
-        count: 5
+        end: 19,
+        count: 10
       })
     })
 
-    it('should return correct range for even aisle with 10 locations', () => {
+    it('should return correct range for an even side of 10 positions', () => {
       const aisle = createAisle({ isOdd: false })
 
       expect(aisle.getPositionRange(10)).toEqual({
         start: 2,
-        end: 10,
-        count: 5
+        end: 20,
+        count: 10
       })
     })
 
-    it('should handle odd locationsPerAisle correctly', () => {
+    it('should treat its argument as one side of length 9 and give both sides 9 positions', () => {
       const oddAisle = createAisle({ isOdd: true })
       const evenAisle = createAisle({ isOdd: false })
 
-      expect(oddAisle.getPositionRange(9).count).toBe(5)
-      expect(evenAisle.getPositionRange(9).count).toBe(4)
+      // Decision 005: `getPositionRange` takes the per-side count, the unit stored in
+      // `CellEntity.locationsPerAisle`, and does not divide. A side of 9 positions has
+      // 9 positions of that side's parity, so both sides report a count of 9.
+      expect(oddAisle.getPositionRange(9)).toEqual({ start: 1, end: 17, count: 9 })
+      expect(evenAisle.getPositionRange(9)).toEqual({ start: 2, end: 18, count: 9 })
     })
   })
 })
