@@ -28,27 +28,29 @@ shows _what_ was decided; these documents record _why_, and what was rejected.
 
 ## Index
 
-| #                                               | Decision                                                                                         | Status   | Affects                                          |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------ |
-| [001](./001-locations-per-aisle-is-a-total.md)  | `locationsPerAisle` is a total across both sides; the stored value is positions per aisle record | Accepted | `CellEntity`, `CreateCellUseCase`, `AisleEntity` |
-| [002](./002-both-sides-have-equal-positions.md) | Both sides of an aisle always have the same number of positions                                  | Accepted | `CellStructureCalculator`, `CreateCellDto`       |
-| [003](./003-position-count-is-even.md)          | `locationsPerAisle` must be even                                                                 | Accepted | `CreateCellDto`                                  |
-| [004](./004-minimum-locations-per-aisle.md)     | A side must be bay-decomposable: at least 3 positions, never 5                                   | Accepted | `CreateCellDto`, `CreateCellUseCase`             |
+| #                                                      | Decision                                                                                         | Status                   | Affects                                          |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ------------------------ | ------------------------------------------------ |
+| [001](./001-locations-per-aisle-is-a-total.md)         | `locationsPerAisle` is a total across both sides; the stored value is positions per aisle record | Partly superseded by 005 | `CellEntity`, `CreateCellUseCase`, `AisleEntity` |
+| [002](./002-both-sides-have-equal-positions.md)        | Both sides of an aisle always have the same number of positions                                  | Accepted                 | `CellStructureCalculator`, `CreateCellDto`       |
+| [003](./003-position-count-is-even.md)                 | `locationsPerAisle` must be even                                                                 | Accepted                 | `CreateCellDto`                                  |
+| [004](./004-minimum-locations-per-aisle.md)            | A side must be bay-decomposable: at least 3 positions, never 5                                   | Accepted                 | `CreateCellDto`, `CreateCellUseCase`             |
+| [005](./005-stored-locations-per-aisle-is-per-side.md) | The stored `locationsPerAisle` is the per-side count, not the entered total                      | Accepted                 | `CellEntity`, `CreateCellUseCase`, `AisleEntity` |
 
 ## Open questions
 
 Facts the code depends on that are still unsettled. Listed here so they are not silently guessed at,
 and closed by a decision record when resolved.
 
-| Question                                                                                   | Where it surfaced                                     | Status                                                                                                  |
-| ------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Batch creation strategy for large cells (~17,000 locations)                                | `docs/features/01-cell-creation.md` (Open Question 1) | Open — `createMany` added to interfaces in #7, transaction deferred to Phase 6                          |
-| `aislesCount` semantics: aisle _numbers_ or aisle _records_?                               | `docs/features/01-cell-creation.md` (Open Question 2) | Open — decision 002 constrains this, not yet written                                                    |
-| Entity construction timestamps for creation                                                | `docs/features/01-cell-creation.md` (Open Question 4) | Open                                                                                                    |
-| Transaction wrapping of the four `create*` calls                                           | `CreateCell.uc.ts` `TODO(infra)`                      | Open — deferred to infrastructure phase                                                                 |
-| `calculateBayCount` removal                                                                | `docs/archive/phases/phase-4-domain-services.md`      | Resolved in code (replaced by `calculateBayDistribution`), still documented in `ROADMAP.md`             |
-| Minimum `locationsPerAisle` for a **one-sided** aisle: is 12 too strict?                   | Decision 004 consequences                             | Resolved by decision 004 — the rule is per side, so a one-sided aisle needs only 3                      |
-| `CreateCellUseCase` derives bay specs from `odd.count` even for a one-sided **even** aisle | Decision 004 consequences                             | Open — masked today because totals are even (decision 002); fix when the DTO validation is restructured |
+| Question                                                                                     | Where it surfaced                                     | Status                                                                                                                                                |
+| -------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Batch creation strategy for large cells (~17,000 locations)                                  | `docs/features/01-cell-creation.md` (Open Question 1) | Open — `createMany` added to interfaces in #7, transaction deferred to Phase 6                                                                        |
+| `aislesCount` semantics: aisle _numbers_ or aisle _records_?                                 | `docs/features/01-cell-creation.md` (Open Question 2) | Open — decision 002 constrains this, not yet written                                                                                                  |
+| Entity construction timestamps for creation                                                  | `docs/features/01-cell-creation.md` (Open Question 4) | Open                                                                                                                                                  |
+| Transaction wrapping of the four `create*` calls                                             | `CreateCell.uc.ts` `TODO(infra)`                      | Open — deferred to infrastructure phase                                                                                                               |
+| `calculateBayCount` removal                                                                  | `docs/archive/phases/phase-4-domain-services.md`      | Resolved in code (replaced by `calculateBayDistribution`), still documented in `ROADMAP.md`                                                           |
+| Minimum `locationsPerAisle` for a **one-sided** aisle: is 12 too strict?                     | Decision 004 consequences                             | Resolved by decision 004 — the rule is per side, so a one-sided aisle needs only 3                                                                    |
+| `CreateCellUseCase` derives bay specs from `odd.count` even for a one-sided **even** aisle   | Decision 004 consequences                             | Resolved — the bay spec is now derived from the side each aisle actually has, so an even one-sided aisle is no longer served by the odd count         |
+| Rename `CellEntity.locationsPerAisle` / the response field to something that says "per side" | Decision 005 alternatives                             | Open — the current name implies a total while the stored value is per side; renaming touches entity, DTO, mapper, Prisma schema and frontend contract |
 
 ---
 

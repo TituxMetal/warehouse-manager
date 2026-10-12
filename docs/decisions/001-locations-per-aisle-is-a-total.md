@@ -1,7 +1,12 @@
 # 001 — `locationsPerAisle` is a total, not a per-side count
 
-- **Status:** Accepted
+- **Status:** Partly superseded by [005](./005-stored-locations-per-aisle-is-per-side.md)
 - **Date:** 2026-10-12
+
+> **Superseded in part by decision 005.** The claim that the **stored** value should be the entered
+> total is withdrawn — the stored value is the per-side count. The rule that the **entered** value
+> is a total across both sides stands, as does the boundary-naming analysis. Read 005 before relying
+> on the stored-value table below.
 
 ## Context
 
