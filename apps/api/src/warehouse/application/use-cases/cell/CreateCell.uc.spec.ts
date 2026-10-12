@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test'
 import { AisleEntity, BayEntity, CellEntity } from '~/warehouse/domain/entities'
 import {
   CellAlreadyExistsException,
-  InvalidAisleRangeException
+  InvalidAisleRangeException,
+  InvalidLocationsPerAisleException
 } from '~/warehouse/domain/exceptions'
 import type {
   IAisleRepository,
@@ -166,6 +167,8 @@ describe('CreateCellUseCase', () => {
 
       const cellArgs = mockCellRepository.create.mock.calls[0][0]
       expect(cellArgs.aislesCount).toBe(3)
+      // Decision 005: the stored value is the per-side count (6 / 2 = 3), not the entered
+      // total of 6.
       expect(cellArgs.locationsPerAisle).toBe(3)
       expect(cellArgs.levelsPerLocation).toBe(2)
 
@@ -361,6 +364,212 @@ describe('CreateCellUseCase', () => {
 
       const cellArgs = mockCellRepository.create.mock.calls[0][0]
       expect(cellArgs.aislesCount).toBe(4)
+    })
+
+    it('should store the per-side count and expose a totalLocations matching the row count (two-sided)', async () => {
+      // Two-sided cell: one aisle number expanded into two records. Per decision 005 the
+      // stored value is the PER-SIDE count (6 / 2 = 3), not the entered total of 6. So
+      // getTotalLocations reads records (2) x 3 per side x levels (2) = 12.
+      //
+      // The same 3 positions per side drives BAY generation, so 2 records x 3 positions x
+      // 2 levels = 12 Location rows are materialised. `totalLocations` and the generated
+      // row count are therefore EQUAL — that equality is the property decision 005 requires.
+      mockCellRepository.findByNumber.mockResolvedValue(null)
+      mockCellRepository.create.mockImplementation(async (cell: CellEntity) =>
+        Object.assign(cell, { id: 1 })
+      )
+      mockAisleRepository.createMany.mockImplementation(async (aisles: AisleEntity[]) =>
+        aisles.map((aisle, index) => Object.assign(aisle, { id: index + 1 }))
+      )
+      mockBayRepository.createMany.mockImplementation(async (bays: BayEntity[]) =>
+        bays.map((bay, index) => Object.assign(bay, { id: index + 1 }))
+      )
+      mockLocationRepository.createMany.mockResolvedValue([])
+
+      const dto = {
+        cellNumber: 1,
+        aisleStart: 1,
+        aisleEnd: 1,
+        startLocationType: 'both',
+        endLocationType: 'both',
+        locationsPerAisle: 6,
+        levelCount: 2,
+        hasPicking: true
+      }
+
+      const result = await useCase.execute(dto)
+
+      const cellArgs = mockCellRepository.create.mock.calls[0][0]
+      expect(cellArgs.aislesCount).toBe(2)
+      // Decision 005: the stored value is the per-side count, not the entered total.
+      expect(cellArgs.locationsPerAisle).toBe(3)
+
+      const locationArgs = mockLocationRepository.createMany.mock.calls[0][0]
+      // Positions actually materialised: one set of 3 per side.
+      expect(locationArgs).toHaveLength(12)
+      expect(result.totalLocations).toBe(12)
+      expect(result.totalLocations).toBe(cellArgs.getTotalLocations())
+      expect(result.totalLocations).toBe(locationArgs.length)
+    })
+
+    it('should store the per-side count for the decision 005 worked example (both, 20)', async () => {
+      // Decision 005 table:
+      //   Aisle `both`, entered 20, 2 records -> stored 10 (per side).
+      // `getTotalLocations()` reads it as 10 x 2 records x levels.
+      mockCellRepository.findByNumber.mockResolvedValue(null)
+      mockCellRepository.create.mockImplementation(async (cell: CellEntity) =>
+        Object.assign(cell, { id: 1 })
+      )
+      mockAisleRepository.createMany.mockImplementation(async (aisles: AisleEntity[]) =>
+        aisles.map((aisle, index) => Object.assign(aisle, { id: index + 1 }))
+      )
+      mockBayRepository.createMany.mockImplementation(async (bays: BayEntity[]) =>
+        bays.map((bay, index) => Object.assign(bay, { id: index + 1 }))
+      )
+      mockLocationRepository.createMany.mockResolvedValue([])
+
+      const dto = {
+        cellNumber: 1,
+        aisleStart: 1,
+        aisleEnd: 1,
+        startLocationType: 'both',
+        endLocationType: 'both',
+        locationsPerAisle: 20,
+        levelCount: 2,
+        hasPicking: true
+      }
+
+      const result = await useCase.execute(dto)
+
+      const cellArgs = mockCellRepository.create.mock.calls[0][0]
+      expect(cellArgs.aislesCount).toBe(2)
+      expect(cellArgs.locationsPerAisle).toBe(10)
+      expect(result.totalLocations).toBe(10 * 2 * 2)
+      expect(result.totalLocations).toBe(cellArgs.getTotalLocations())
+    })
+
+    it('should store the full total for a one-sided cell and expose a matching totalLocations', async () => {
+      // Decision 005: for a one-sided aisle the per-side count coincides with the entered
+      // total. Aisle `odd`, entered 10, 1 record -> stored 10; the single side is the
+      // whole aisle, so a total of 10 means 10 positions on that side.
+      mockCellRepository.findByNumber.mockResolvedValue(null)
+      mockCellRepository.create.mockImplementation(async (cell: CellEntity) =>
+        Object.assign(cell, { id: 1 })
+      )
+      mockAisleRepository.createMany.mockImplementation(async (aisles: AisleEntity[]) =>
+        aisles.map((aisle, index) => Object.assign(aisle, { id: index + 1 }))
+      )
+      mockBayRepository.createMany.mockImplementation(async (bays: BayEntity[]) =>
+        bays.map((bay, index) => Object.assign(bay, { id: index + 1 }))
+      )
+      mockLocationRepository.createMany.mockResolvedValue([])
+
+      const dto = {
+        cellNumber: 1,
+        aisleStart: 1,
+        aisleEnd: 1,
+        startLocationType: 'odd',
+        endLocationType: 'odd',
+        locationsPerAisle: 10,
+        levelCount: 2,
+        hasPicking: true
+      }
+
+      const result = await useCase.execute(dto)
+
+      const cellArgs = mockCellRepository.create.mock.calls[0][0]
+      expect(cellArgs.aislesCount).toBe(1)
+      expect(cellArgs.locationsPerAisle).toBe(10)
+
+      const locationArgs = mockLocationRepository.createMany.mock.calls[0][0]
+      expect(locationArgs).toHaveLength(20)
+      expect(result.totalLocations).toBe(20)
+      expect(result.totalLocations).toBe(cellArgs.getTotalLocations())
+      expect(result.totalLocations).toBe(locationArgs.length)
+    })
+
+    it('should reject an odd locationsPerAisle for a two-sided aisle', async () => {
+      mockCellRepository.findByNumber.mockResolvedValue(null)
+
+      const dto = {
+        cellNumber: 1,
+        aisleStart: 1,
+        aisleEnd: 2,
+        startLocationType: 'both',
+        endLocationType: 'both',
+        locationsPerAisle: 7,
+        levelCount: 2,
+        hasPicking: true
+      }
+
+      await expect(useCase.execute(dto)).rejects.toThrow(InvalidLocationsPerAisleException)
+      expect(mockCellRepository.create).not.toHaveBeenCalled()
+    })
+
+    it('should reject a total of 10 for a two-sided aisle (5 positions per side is not bay-decomposable)', async () => {
+      mockCellRepository.findByNumber.mockResolvedValue(null)
+
+      const dto = {
+        cellNumber: 1,
+        aisleStart: 1,
+        aisleEnd: 1,
+        startLocationType: 'both',
+        endLocationType: 'both',
+        locationsPerAisle: 10,
+        levelCount: 2,
+        hasPicking: true
+      }
+
+      await expect(useCase.execute(dto)).rejects.toThrow(InvalidLocationsPerAisleException)
+      expect(mockCellRepository.create).not.toHaveBeenCalled()
+    })
+
+    it('should accept a total of 10 for a one-sided aisle (3 + 3 + 4)', async () => {
+      mockCellRepository.findByNumber.mockResolvedValue(null)
+      mockCellRepository.create.mockImplementation(async (cell: CellEntity) =>
+        Object.assign(cell, { id: 1 })
+      )
+      mockAisleRepository.createMany.mockImplementation(async (aisles: AisleEntity[]) =>
+        aisles.map((aisle, index) => Object.assign(aisle, { id: index + 1 }))
+      )
+      mockBayRepository.createMany.mockImplementation(async (bays: BayEntity[]) =>
+        bays.map((bay, index) => Object.assign(bay, { id: index + 1 }))
+      )
+      mockLocationRepository.createMany.mockResolvedValue([])
+
+      const dto = {
+        cellNumber: 1,
+        aisleStart: 1,
+        aisleEnd: 1,
+        startLocationType: 'odd',
+        endLocationType: 'odd',
+        locationsPerAisle: 10,
+        levelCount: 2,
+        hasPicking: true
+      }
+
+      const result = await useCase.execute(dto)
+
+      expect(mockCellRepository.create).toHaveBeenCalled()
+      expect(result.totalLocations).toBe(20)
+    })
+
+    it.each([1, 2, 5])('should reject a total of %i for a one-sided aisle', async total => {
+      mockCellRepository.findByNumber.mockResolvedValue(null)
+
+      const dto = {
+        cellNumber: 1,
+        aisleStart: 1,
+        aisleEnd: 1,
+        startLocationType: 'even',
+        endLocationType: 'even',
+        locationsPerAisle: total,
+        levelCount: 2,
+        hasPicking: true
+      }
+
+      await expect(useCase.execute(dto)).rejects.toThrow(InvalidLocationsPerAisleException)
+      expect(mockCellRepository.create).not.toHaveBeenCalled()
     })
 
     it('should skip level 0 locations when hasPicking is false', async () => {

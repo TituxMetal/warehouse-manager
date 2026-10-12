@@ -84,6 +84,10 @@ describe('CellService', () => {
         levelCount: 2,
         hasPicking: true
       }
+      // Opaque stub response: this test only asserts that `create` forwards the DTO and
+      // returns what the use case produced, so nothing here derives the fields. The
+      // numbers are nonetheless coherent with decision 005 for the DTO above: entered 6
+      // is stored per side as 3, and the cell has 7 aisle records x 3 x 2 levels = 42.
       const expectedResult: CellResponseDto = {
         id: 1,
         number: 1,
