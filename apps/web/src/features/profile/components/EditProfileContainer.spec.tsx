@@ -1,16 +1,10 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 
+import { api } from '~/lib/apiRequest'
 import { cleanup, fireEvent, render, screen, userEvent, waitFor } from '~/test-utils'
 import type { User } from '~/types'
 
-import { updateProfile } from '../api/user.service'
-
 import { EditProfileContainer } from './EditProfileContainer'
-
-// Mock modules
-mock.module('../api/user.service', () => ({
-  updateProfile: mock(() => {})
-}))
 
 const mockUser: User = {
   id: '1',
@@ -25,10 +19,18 @@ const mockUser: User = {
 }
 
 describe('EditProfileContainer', () => {
+  let patchSpy: ReturnType<typeof spyOn<typeof api, 'patch'>>
+
   beforeEach(() => {
     cleanup()
     document.body.innerHTML = ''
-    mock.restore()
+    // Spy on the shared boundary instead of mock.module, which is process-wide
+    // and cannot be undone by mock.restore(), leaking into other spec files.
+    patchSpy = spyOn(api, 'patch')
+  })
+
+  afterEach(() => {
+    patchSpy.mockRestore()
   })
 
   describe('Profile View Mode', () => {
@@ -95,8 +97,7 @@ describe('EditProfileContainer', () => {
     })
 
     it('should clear server error when Cancel button is clicked', async () => {
-      const mockUpdateProfile = updateProfile as ReturnType<typeof mock>
-      mockUpdateProfile.mockRejectedValue(new Error('Update failed'))
+      patchSpy.mockRejectedValue(new Error('Update failed'))
 
       const user = userEvent.setup()
       render(<EditProfileContainer userData={mockUser} />)
@@ -118,10 +119,12 @@ describe('EditProfileContainer', () => {
 
   describe('Form Submission', () => {
     it('should call updateProfile with form data when submitted', async () => {
-      const mockUpdateProfile = updateProfile as ReturnType<typeof mock>
-      mockUpdateProfile.mockResolvedValue({
-        ...mockUser,
-        firstName: 'Jane'
+      patchSpy.mockResolvedValue({
+        success: true,
+        data: {
+          ...mockUser,
+          firstName: 'Jane'
+        }
       })
 
       const user = userEvent.setup()
@@ -134,7 +137,7 @@ describe('EditProfileContainer', () => {
       fireEvent.click(screen.getByRole('button', { name: /submit/i }))
 
       await waitFor(() => {
-        expect(updateProfile).toHaveBeenCalledWith({
+        expect(api.patch).toHaveBeenCalledWith('/api/users/me', {
           username: 'testuser',
           firstName: 'Jane',
           lastName: 'Doe'
@@ -144,8 +147,7 @@ describe('EditProfileContainer', () => {
 
     it('should update user data and return to view mode on successful update', async () => {
       const updatedUser = { ...mockUser, firstName: 'Jane' }
-      const mockUpdateProfile = updateProfile as ReturnType<typeof mock>
-      mockUpdateProfile.mockResolvedValue(updatedUser)
+      patchSpy.mockResolvedValue({ success: true, data: updatedUser })
 
       const user = userEvent.setup()
       render(<EditProfileContainer userData={mockUser} />)
@@ -163,8 +165,7 @@ describe('EditProfileContainer', () => {
     })
 
     it('should show error message when update fails', async () => {
-      const mockUpdateProfile = updateProfile as ReturnType<typeof mock>
-      mockUpdateProfile.mockRejectedValue(new Error('Username already exists'))
+      patchSpy.mockRejectedValue(new Error('Username already exists'))
 
       const user = userEvent.setup()
       render(<EditProfileContainer userData={mockUser} />)
@@ -179,8 +180,7 @@ describe('EditProfileContainer', () => {
     })
 
     it('should show default error message when no error message is provided', async () => {
-      const mockUpdateProfile = updateProfile as ReturnType<typeof mock>
-      mockUpdateProfile.mockRejectedValue(new Error('Update failed'))
+      patchSpy.mockRejectedValue(new Error('Update failed'))
 
       const user = userEvent.setup()
       render(<EditProfileContainer userData={mockUser} />)
