@@ -22,18 +22,24 @@ export class AisleEntity {
 
   /**
    * Returns the position range for this aisle side
-   * @param locationsPerAisle - Total locations per aisle (from parent Cell)
+   * @param locationsPerSide - Number of positions on ONE side of the aisle (the unit
+   *   stored in `CellEntity.locationsPerAisle` per decision 005), not the total across
+   *   both sides
    * @returns { start: number, end: number, count: number }
    *
-   * For locationsPerAisle = 10:
-   *   - Odd side:  { start: 1, end: 9, count: 5 }  (positions 1, 3, 5, 7, 9)
-   *   - Even side: { start: 2, end: 10, count: 5 } (positions 2, 4, 6, 8, 10)
+   * A side of length N carries N positions spaced by 2, all with the side's parity:
+   *   - Odd side:  { start: 1, end: 2N - 1, count: N }  (positions 1, 3, ..., 2N - 1)
+   *   - Even side: { start: 2, end: 2N, count: N }      (positions 2, 4, ..., 2N)
+   *
+   * For a side of 5 positions:
+   *   - Odd side:  { start: 1, end: 9, count: 5 }
+   *   - Even side: { start: 2, end: 10, count: 5 }
    */
-  getPositionRange(locationsPerAisle: number): { start: number; end: number; count: number } {
+  getPositionRange(locationsPerSide: number): { start: number; end: number; count: number } {
     return {
       start: this.isOdd ? 1 : 2,
-      end: this.isOdd ? locationsPerAisle - 1 : locationsPerAisle,
-      count: this.isOdd ? Math.ceil(locationsPerAisle / 2) : Math.floor(locationsPerAisle / 2)
+      end: this.isOdd ? locationsPerSide * 2 - 1 : locationsPerSide * 2,
+      count: locationsPerSide
     }
   }
 }
