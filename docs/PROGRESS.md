@@ -26,9 +26,9 @@
 The first pass above was marked complete but contradicted `docs/decisions/001`–`004`. Corrected here
 so the application layer matches the accepted decisions:
 
-- [x] Store positions per aisle record in `CellEntity.locationsPerAisle` (decision 001): the split
-      half for a two-sided aisle, the full total for a one-sided one — not
-      `positionRanges.odd.count`
+- [x] Store the per-side count in `CellEntity.locationsPerAisle` (decision 005, which supersedes the
+      stored-value table of decision 001): the split half for a two-sided aisle, the full total for
+      a one-sided one — not `positionRanges.odd.count`
 - [x] Enforce the `locationsPerAisle` rule in `CreateCellUseCase` via
       `InvalidLocationsPerAisleException` (two-sided: even, ≥ 6, ≠ 10; one-sided: ≥ 3, ≠ 5)
 - [x] Declare the same rule as an object-level `class-validator` constraint on `CreateCellDto`
