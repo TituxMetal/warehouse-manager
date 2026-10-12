@@ -21,6 +21,26 @@
 - [x] Update `CellService` facade (add create method)
 - [x] Write tests for `CreateCellUseCase`
 
+#### Phase 2b: Decision compliance (decisions 001–004)
+
+The first pass above was marked complete but contradicted `docs/decisions/001`–`004`. Corrected here
+so the application layer matches the accepted decisions:
+
+- [x] Store positions per aisle record in `CellEntity.locationsPerAisle` (decision 001): the split
+      half for a two-sided aisle, the full total for a one-sided one — not
+      `positionRanges.odd.count`
+- [x] Enforce the `locationsPerAisle` rule in `CreateCellUseCase` via
+      `InvalidLocationsPerAisleException` (two-sided: even, ≥ 6, ≠ 10; one-sided: ≥ 3, ≠ 5)
+- [x] Declare the same rule as an object-level `class-validator` constraint on `CreateCellDto`
+      (inert until a `ValidationPipe` exists)
+- [x] Derive the bay specification from the side each aisle actually has, not `odd.count`
+- [x] Rename `isUniqueCellNumber` to `existingCell`; use a single `now` per orchestration
+- [x] Chain `calculatePositionRanges` → `calculateBayDistribution` → `getPositions` in tests and
+      assert generated positions stay inside the declared range
+
+_Not part of this block: the DTO constraint cannot run over HTTP until a `ValidationPipe` and a
+controller exist (Phase 5/6)._
+
 ### Phase 3: Infrastructure — Mappers (Block 3)
 
 - [ ] Create `CellInfrastructureMapper` (toDomain/toPrisma)
